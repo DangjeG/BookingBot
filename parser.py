@@ -29,7 +29,7 @@ def get_source_html(url):
 
 
 def get_country_url(country, countries_html):
-    soup = BeautifulSoup(countries_html, "lxml")
+    soup = BeautifulSoup(countries_html, "html.parser")
     country_divs = soup.find_all("div", class_="item")
 
     for country_div in country_divs:
@@ -41,7 +41,7 @@ def get_country_url(country, countries_html):
 
 def get_city_url(city, country_url):
     cities_html = get_source_html(country_url)
-    soup = BeautifulSoup(cities_html, "lxml")
+    soup = BeautifulSoup(cities_html, "html.parser")
     letter_containers = soup.find_all("div", class_="letter-container clearfix")
 
     for container in letter_containers:
@@ -67,7 +67,7 @@ def find_hotels(hotels_url, user_point, radius):
 
     while True:
         try:
-            soup = BeautifulSoup(driver.page_source, "lxml")
+            soup = BeautifulSoup(driver.page_source, "html.parser")
             if not re.search(r'<div class="hotels-not-found" style="display: none;"', str(soup)):
                 return hotels
 
