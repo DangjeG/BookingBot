@@ -3,9 +3,10 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 import time
 
-
 MAIN_PAGE = "https://ostrovok.ru/"
 
+
+# todo сделать из этого класс наследованный от парсера и переопределит метод
 
 def get_city_url(country, city, date_in, date_out, adults, childrens):
     driver = webdriver.Chrome()

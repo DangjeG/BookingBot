@@ -12,17 +12,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 MAIN_PAGE = "https://101hotels.com"
 
-
-class Hotel:
-    def __init__(self, name, address, rating, url):
-        self.name = name
-        self.address = address
-        self.rating = rating
-        self.url = url
-
-    def __str__(self):
-        return f"Hotel: {self.name}\nAddress: {self.address}\nRating: {self.rating}\nURL: {self.url}"
-
+# todo сделать из этого класс наследованный от парсера и переопределит метод
 
 def get_source_html(url):
     return requests.Session().get(url=url).text
