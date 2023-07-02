@@ -3,6 +3,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 import time
 
+
 MAIN_PAGE = "https://ostrovok.ru/"
 
 
@@ -17,7 +18,8 @@ def get_city_url(country, city, date_in, date_out, adults, childrens):
     time.sleep(3)
     city_field.send_keys(Keys.RETURN)
     driver.find_element(By.CLASS_NAME,
-                        "Button-module__button--MR2Ly.Button-module__button_size_m--184Hw."
+                        "Button-module__button--MR2Ly."
+                        "Button-module__button_size_m--184Hw."
                         "Button-module__button_wide--eV274").click()
     url = driver.current_url
     url = url.split('dates=')[0] + 'dates=' + date_in + "-" + date_out + '&' + '&'.join(
@@ -43,6 +45,22 @@ def main():
     adults = "2"
     childrens = "10.15.3"  # указывается возраст ребёнка,
     # если несколько детей то возраста через точку
+    # минимальное 100 рублей, максимум 100.000
+    price = "0-10000"
+    # звёзды 1-5 через точку
+    stars = "1.2.3"
+
+    url = get_city_url(country, city, date_in, date_out, adults, childrens)
+
+    url = url.split('dates=')[0] + 'dates=' + date_in + "-" + date_out + '&' + '&'.join(
+        url.split('&')[1:])
+
+    if childrens is None:
+        url = url.split('guests=')[0] + 'guests=' + adults + '&' + '&'.join(
+            url.split('&')[1:])
+    else:
+        url = url.split('guests=')[0] + 'guests=' + adults + "and" + childrens + '&' + '&'.join(
+            url.split('&')[1:])
 
     city_url = get_city_url(country, city, date_in, date_out, adults, childrens)
     print(city_url)
