@@ -1,15 +1,20 @@
+import time
+import re
+from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.common import NoSuchElementException, ElementClickInterceptedException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-import time
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+from geopy.distance import great_circle as gd
+from geopy.geocoders import Nominatim
 
+from Backend.ObjectModels.hotel import Hotel
 
 MAIN_PAGE = "https://ostrovok.ru/"
 
-
-# todo сделать из этого класс наследованный от парсера и переопределит метод
-
-def get_city_url(country, city, date_in, date_out, adults, childrens):
+def get_city_url(country, city):
     driver = webdriver.Chrome()
     driver.get(MAIN_PAGE)
     city_field = driver.find_element(By.CLASS_NAME, "Input-module__control--tqFEn")
@@ -18,52 +23,110 @@ def get_city_url(country, city, date_in, date_out, adults, childrens):
     time.sleep(3)
     city_field.send_keys(Keys.RETURN)
     driver.find_element(By.CLASS_NAME,
-                        "Button-module__button--MR2Ly."
-                        "Button-module__button_size_m--184Hw."
+                        "Button-module__button--MR2Ly.Button-module__button_size_m--184Hw."
                         "Button-module__button_wide--eV274").click()
-    url = driver.current_url
+
+    return driver.current_url, driver
+
+
+def set_filters(url, date_in, date_out, adults, childrens, stars, meal_types, price, amenities):
+    url = url.replace("price=one", "price=" + price + ".one")
     url = url.split('dates=')[0] + 'dates=' + date_in + "-" + date_out + '&' + '&'.join(
         url.split('&')[1:])
 
-    if childrens is None:
+    if childrens == "":
         url = url.split('guests=')[0] + 'guests=' + adults + '&' + '&'.join(
             url.split('&')[1:])
     else:
         url = url.split('guests=')[0] + 'guests=' + adults + "and" + childrens + '&' + '&'.join(
             url.split('&')[1:])
 
+    url += "&meal_types=" + meal_types + "&stars=" + stars + "&amenities=" + amenities
+
     return url
+
+
+def get_distance(hotel_coords, user_coords):
+    return gd((user_coords[0], user_coords[1]), (hotel_coords[0], hotel_coords[1])).km
+
+
+def find_hotels(driver, hotels_url, user_point, radius):
+    hotels = list()
+    driver.get(hotels_url)
+    while True:
+        try:
+            WebDriverWait(driver, 60).until(EC.invisibility_of_element_located(
+                (By.CLASS_NAME, 'zenserpresult.zenserpresult-hasfilters.zenserpresult-hasloading')))
+
+            soup = BeautifulSoup(driver.page_source, "lxml")
+            if re.search(r'<div class="emptyserpfiltered-title">', str(soup)):
+                return hotels
+
+            items = soup.find_all("div", class_="zen-hotelcard-content")
+            for item in items:
+                geolocator = Nominatim(user_agent="user_agent")
+                try:
+                    location = geolocator.geocode(
+                        item.find("p", class_="zen-hotelcard-address link").text.replace("ul. ", "").replace("Street", ""))
+                    float_values = (location.latitude, location.longitude)
+
+                    if get_distance(hotel_coords=tuple([float(value) for value in float_values]),
+                                    user_coords=user_point) <= radius:
+                        name = item.find('a', class_='zen-hotelcard-name-link link').text
+                        address = item.find("p", class_="zen-hotelcard-address link").text
+                        rating = item.find('a', class_='zen-hotelcard-rating-total').text
+                        url = MAIN_PAGE + item.find('a', class_='zen-hotelcard-name-link link')['href']
+
+                        hotels.append(Hotel(name, address, rating, url))
+                except AttributeError:
+                    continue
+
+            try:
+                driver.find_element(By.CSS_SELECTOR, ".zenpagination-button-next").click()
+            except ElementClickInterceptedException:
+                break
+
+        except NoSuchElementException:
+            break
+
+    return hotels
 
 
 def main():
     country = "Чехия"
     city = "Прага"
-    user_point = (55.160797, 61.402509)
+    user_point = (50.078883, 14.442296)
     radius_km = 5
     date_in = "14.08.2023"
     date_out = "31.08.2023"
     adults = "2"
-    childrens = "10.15.3"  # указывается возраст ребёнка,
+    childrens = ""  # указывается возраст ребёнка,
     # если несколько детей то возраста через точку
+
+    # 0.1 / 2 / 3 / 4 / 5
+    stars = ""  # количество звёзд через точку
+
+    # без питания=nomeal; завтрак=breakfast,
+    # завтрак+обед/ужин=halfBoard,
+    # завтрак+обед+ужин=fullBoard,
+    # всё включено=allInclusive
+    meal_types = "nomeal"  # вводится через точку
+
     # минимальное 100 рублей, максимум 100.000
-    price = "0-10000"
-    # звёзды 1-5 через точку
-    stars = "1.2.3"
+    price = "100-10000"
+    # wifi=has_internet, парковка=has_parking, бассейн=has_pool,
+    # кондиционер=air-conditioning, с животными=has_pets,
+    # трансфер=has_airport_transfer, бар/ресторан=has_meal
+    amenities = "has_internet.air-conditioning"  # вводится через точку
 
-    url = get_city_url(country, city, date_in, date_out, adults, childrens)
+    url, driver = get_city_url(country=country, city=city)
+    url_with_filters = set_filters(url, date_in, date_out, adults, childrens, stars, meal_types, price, amenities)
+    print(url_with_filters)
 
-    url = url.split('dates=')[0] + 'dates=' + date_in + "-" + date_out + '&' + '&'.join(
-        url.split('&')[1:])
-
-    if childrens is None:
-        url = url.split('guests=')[0] + 'guests=' + adults + '&' + '&'.join(
-            url.split('&')[1:])
-    else:
-        url = url.split('guests=')[0] + 'guests=' + adults + "and" + childrens + '&' + '&'.join(
-            url.split('&')[1:])
-
-    city_url = get_city_url(country, city, date_in, date_out, adults, childrens)
-    print(city_url)
+    hotels = find_hotels(driver=driver, hotels_url=url_with_filters, user_point=user_point, radius=radius_km)
+    for hotel in hotels:
+        print(hotel)
+        print()
 
 
 if __name__ == "__main__":

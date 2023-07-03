@@ -6,20 +6,20 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from geopy.distance import great_circle as gd
-import re
 from selenium.webdriver.support.wait import WebDriverWait
+import re
 
+from Backend.ObjectModels.hotel import Hotel
 
 MAIN_PAGE = "https://101hotels.com"
 
-# todo сделать из этого класс наследованный от парсера и переопределит метод
 
 def get_source_html(url):
     return requests.Session().get(url=url).text
 
 
 def get_country_url(country, countries_html):
-    soup = BeautifulSoup(countries_html, "html.parser")
+    soup = BeautifulSoup(countries_html, "lxml")
     country_divs = soup.find_all("div", class_="item")
 
     for country_div in country_divs:
@@ -31,7 +31,7 @@ def get_country_url(country, countries_html):
 
 def get_city_url(city, country_url):
     cities_html = get_source_html(country_url)
-    soup = BeautifulSoup(cities_html, "html.parser")
+    soup = BeautifulSoup(cities_html, "lxml")
     letter_containers = soup.find_all("div", class_="letter-container clearfix")
 
     for container in letter_containers:
@@ -57,14 +57,14 @@ def find_hotels(hotels_url, user_point, radius):
 
     while True:
         try:
-            soup = BeautifulSoup(driver.page_source, "html.parser")
-            if not re.search(r'<div class="hotels-not-found" style="display: none;"', str(soup)):
+            soup = BeautifulSoup(driver.page_source, "lxml")
+            if not re.search(r'<div class="hotels-not-found" style="display: none;">', str(soup)):
                 return hotels
 
             ul = soup.find("ul", class_="unstyled clearfix hotellist list")
-            li = ul.find_all("li")
+            li = ul.find_all("li", class_=["item", "some-hotels-found"])
             for item in li:
-                if 'item' not in item.get('class', []):
+                if 'some-hotels-found' in item.get('class', []):
                     break
 
                 float_values = ((item.find("div", class_="item-meta clearfix").
@@ -72,8 +72,8 @@ def find_hotels(hotels_url, user_point, radius):
                                  find("div", class_="item-address-wrap js-on-map tooltip").
                                  get("data-hotel-coords"))[1:-1]).split(",")
 
-                if get_distance(hotel_coords=tuple([float(value) for value in float_values]),
-                                user_coords=user_point) <= radius:
+                distance = get_distance(hotel_coords=tuple([float(value) for value in float_values]), user_coords=user_point)
+                if distance <= radius:
                     name = item.find('span', itemprop='name').text
                     address = item.find('span', itemprop='streetAddress').text
                     rating = item.find('span', itemprop='ratingValue').text
@@ -103,11 +103,11 @@ def main():
     # если несколько детей то возраста через запятую
     price = "0-Infinity"
     # без звёзд-0
-    stars = "5"
+    stars = "4"
     # завтрак-1, полупансион-2, полныйпансион-3, всёвключено-4
     meal_categories = "1"
-    # wifi-19, парковка-14, бассейн-10, телевизор-64,
-    # холодильник-70, фен-7, кондиционер-5, с животными-96
+    # wifi-19, парковка-14, бассейн-10, бар/ресторан-2
+    # кондиционер-5, с животными-96, трансфер-183
     services = "19,7,5"
 
     country_url = get_country_url(country=country, countries_html=get_source_html(url=MAIN_PAGE + "/countries"))
