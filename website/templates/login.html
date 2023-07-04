@@ -1,35 +1,98 @@
 {% extends 'base.html' %}
 {% block title %}
-    Login Page
+    Вход
 {% endblock %}
 
 {% block content %}
-<body class="text-center">
-    <div class="container">
-        <form method="POST" class="form-signin" style="color:white">
-            {{ form.hidden_tag() }}
-            <img class="mb-4" src="https://res.cloudinary.com/jimshapedcoding/image/upload/v1597332609/android-icon-192x192_ove2a7.png" alt="">
-            <h1 class="h3 mb-3 font-weight-normal">
-                Please Login
-            </h1>
-            <br>
-            {{ form.username.label() }}
-            {{ form.username(class="form-control", placeholder="User Name") }}
+<form method="POST">
+    <div class="row">
+        <h3 align="center">Войти</h3>
 
-            {{ form.password.label() }}
-            {{ form.password(class="form-control", placeholder="Password") }}
-
-            <br>
-
-
-            <div class="checkbox mb-3">
-               <h6>Do not have an account?</h6>
-               <a class="btn btn-sm btn-secondary" href="{{ url_for('register_page') }}">Register</a>
+        <div class="row">
+            <div class="form-group">
+                <input
+                    type="text"
+                    class="form-control"
+                    id="nickname"
+                    name="nickname"
+                    placeholder="Введите имя пользователя"
+                />
             </div>
+            <div class="form-group">
+                <input
+                    type="password"
+                    class="form-control"
+                    id="password"
+                    name="password"
+                    placeholder="Введите пароль"
+                />
+            </div>
+            <br />
+            <button type="submit" class="btn btn-primary">Войти</button>
+        </div>
 
-            {{ form.submit(class="btn btn-lg btn-block btn-primary") }}
+        <div class="row">
+            <p>или</p>
+        </div>
 
-        </form>
+        <div class="row">
+            <a href="#" class="telegram btn">
+                <i class="fa fa-telegram fa-fw"></i> Войти с помощью Telegram
+            </a>
+        </div>
     </div>
-</body>
+</form>
+
+<div class="bottom-container">
+    <div class="row">
+        <a href="/signup" style="color:white" class="btn">Sign up</a>
+    </div>
+</div>
+
+<style>
+    .row {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    input:hover,
+    .btn:hover {
+        opacity: 1;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 4px;
+        margin: 5px 0;
+        opacity: 0.85;
+        display: inline-block;
+        font-size: 18px;
+        line-height: 20px;
+        text-decoration: none;
+    }
+
+    button[type=submit] {
+        background-color: #4CAF50;
+        color: white;
+        cursor: pointer;
+    }
+
+    button[type=submit]:hover {
+        background-color: #45a049;
+    }
+
+    .telegram {
+        background-color: #55ACEE;
+        color: white;
+    }
+
+    .bottom-container {
+        text-align: center;
+        background-color: #666;
+        border-radius: 0px 0px 4px 4px;
+    }
+</style>
 {% endblock %}
