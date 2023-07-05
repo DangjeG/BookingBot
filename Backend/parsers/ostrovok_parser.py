@@ -14,6 +14,7 @@ from Backend.ObjectModels.hotel import Hotel
 
 MAIN_PAGE = "https://ostrovok.ru/"
 
+
 def get_city_url(country, city):
     driver = webdriver.Chrome()
     driver.get(MAIN_PAGE)

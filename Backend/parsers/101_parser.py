@@ -1,4 +1,7 @@
 import requests
+import lxml
+import re
+from Backend.ObjectModels.hotel import Hotel
 from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium import webdriver
@@ -7,9 +10,7 @@ from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from geopy.distance import great_circle as gd
 from selenium.webdriver.support.wait import WebDriverWait
-import re
 
-from Backend.ObjectModels.hotel import Hotel
 
 MAIN_PAGE = "https://101hotels.com"
 
@@ -109,6 +110,17 @@ def main():
     # wifi-19, парковка-14, бассейн-10, бар/ресторан-2
     # кондиционер-5, с животными-96, трансфер-183
     services = "19,7,5"
+
+
+
+
+
+
+
+
+
+
+
 
     country_url = get_country_url(country=country, countries_html=get_source_html(url=MAIN_PAGE + "/countries"))
     city_url = MAIN_PAGE + get_city_url(city=city, country_url=country_url)
