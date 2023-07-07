@@ -1,3 +1,3 @@
 # я в душе не бубу что тут нужно хранить
-class user:
+class User:
     pass

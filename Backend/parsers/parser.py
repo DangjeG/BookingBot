@@ -1,5 +1,8 @@
 # todo мб что то еще докинуть
-class parser:
+from Backend.ObjectModels import user_request
+from Backend.ObjectModels.hotel import Hotel
 
-    def get_hotels(self):
+
+class parser:
+    def get_hotels(self, usr_req: user_request) -> list[Hotel]:
         return []
