@@ -1,7 +1,4 @@
 import requests
-import lxml
-import re
-from Backend.ObjectModels.hotel import Hotel
 from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium import webdriver
@@ -10,6 +7,8 @@ from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from geopy.distance import great_circle as gd
 from selenium.webdriver.support.wait import WebDriverWait
+from Backend.ObjectModels.hotel import Hotel
+import re
 
 
 MAIN_PAGE = "https://101hotels.com"
@@ -79,26 +78,28 @@ def find_hotels(hotels_url, user_point, radius):
                     address = item.find('span', itemprop='streetAddress').text
                     rating = item.find('span', itemprop='ratingValue').text
                     url = MAIN_PAGE + item.find('a', itemprop='url')['href']
-                    hotel = Hotel(name, address, rating, url)
-                    hotels.append(hotel)
-
-            next_button = driver.find_element(By.XPATH, '//a[@class="page-link next"]')
-            if 'disabled' in next_button.find_element(By.XPATH, './..').get_attribute('class'):
+                    photo = item.find('img', itemprop='image')['src']
+                    hotels.append(Hotel(name, address, rating, url, photo))
+            try:
+                next_button = driver.find_element(By.XPATH, '//a[@class="page-link next"]')
+                if 'disabled' in next_button.find_element(By.XPATH, './..').get_attribute('class'):
+                    break
+                next_button.click()
+            except KeyboardInterrupt:
                 break
-            next_button.click()
         except NoSuchElementException:
             break
 
         return hotels
 
 
-def main():
+def get_hotels():
     country = "Россия"
     city = "Челябинск"
     user_point = (55.160797, 61.402509)  # проспект Ленина, 54, Челябинск
     radius_km = 5
-    date_in = "03.07.2023"
-    date_out = "09.07.2023"
+    date_in = "03.08.2023"
+    date_out = "09.08.2023"
     adults = "2"
     children = ""  # указывается возраст ребёнка,
     # если несколько детей то возраста через запятую
@@ -111,17 +112,6 @@ def main():
     # кондиционер-5, с животными-96, трансфер-183
     services = "19,7,5"
 
-
-
-
-
-
-
-
-
-
-
-
     country_url = get_country_url(country=country, countries_html=get_source_html(url=MAIN_PAGE + "/countries"))
     city_url = MAIN_PAGE + get_city_url(city=city, country_url=country_url)
     url_with_filters = (city_url + "?in=" + date_in + "&out=" + date_out +
@@ -129,14 +119,14 @@ def main():
                         "&price=" + price + "&services=" + services + "&stars=" + stars +
                         "&meal_categories=" + meal_categories + "&viewType=list")
     print(url_with_filters)
-    hotels = find_hotels(hotels_url=url_with_filters, user_point=user_point, radius=radius_km)
-
-    for hotel in hotels:
-        print(hotel)
+    print()
+    return find_hotels(hotels_url=url_with_filters, user_point=user_point, radius=radius_km)
 
 
 if __name__ == "__main__":
-    main()
+    hotels = get_hotels()
+    for hotel in hotels:
+        print(hotel)
 
 # штука для нечёткого поиска города/страны
 # нужен список городов/стран

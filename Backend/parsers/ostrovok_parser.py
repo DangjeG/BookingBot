@@ -9,8 +9,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from geopy.distance import great_circle as gd
 from geopy.geocoders import Nominatim
-
 from Backend.ObjectModels.hotel import Hotel
+
 
 MAIN_PAGE = "https://ostrovok.ru/"
 
@@ -56,14 +56,14 @@ def find_hotels(driver, hotels_url, user_point, radius):
     driver.get(hotels_url)
     while True:
         try:
-            WebDriverWait(driver, 60).until(EC.invisibility_of_element_located(
+            WebDriverWait(driver, 30).until(EC.invisibility_of_element_located(
                 (By.CLASS_NAME, 'zenserpresult.zenserpresult-hasfilters.zenserpresult-hasloading')))
 
             soup = BeautifulSoup(driver.page_source, "lxml")
             if re.search(r'<div class="emptyserpfiltered-title">', str(soup)):
                 return hotels
 
-            items = soup.find_all("div", class_="zen-hotelcard-content")
+            items = soup.find_all("div", class_="hotel-wrapper")
             for item in items:
                 geolocator = Nominatim(user_agent="user_agent")
                 try:
@@ -77,8 +77,8 @@ def find_hotels(driver, hotels_url, user_point, radius):
                         address = item.find("p", class_="zen-hotelcard-address link").text
                         rating = item.find('a', class_='zen-hotelcard-rating-total').text
                         url = MAIN_PAGE + item.find('a', class_='zen-hotelcard-name-link link')['href']
-
-                        hotels.append(Hotel(name, address, rating, url))
+                        photo = item.find('img', class_="zenimage-content")['src']
+                        hotels.append(Hotel(name, address, rating, url, photo))
                 except AttributeError:
                     continue
 
@@ -102,7 +102,7 @@ def main():
     date_out = "31.08.2023"
     adults = "2"
     childrens = ""  # указывается возраст ребёнка,
-    # если несколько детей то возраста через точку
+    # если несколько детей, то возраста через точку
 
     # 0.1 / 2 / 3 / 4 / 5
     stars = ""  # количество звёзд через точку
