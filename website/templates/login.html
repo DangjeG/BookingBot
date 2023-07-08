@@ -1,98 +1,59 @@
 {% extends 'base.html' %}
+{% block head %}
+<script async src="https://telegram.org/js/telegram-widget.js?21" data-telegram-login="{{BOTNAME}}" data-size="large" data-auth-url="{{BOTDOMAIN}}/login" data-request-access="write"></script>
+{% endblock %}
+
 {% block title %}
     Вход
 {% endblock %}
 
 {% block content %}
 <form method="POST">
-    <div class="row">
-        <h3 align="center">Войти</h3>
-
-        <div class="row">
-            <div class="form-group">
-                <input
-                    type="text"
-                    class="form-control"
-                    id="nickname"
-                    name="nickname"
-                    placeholder="Введите имя пользователя"
-                />
-            </div>
-            <div class="form-group">
-                <input
-                    type="password"
-                    class="form-control"
-                    id="password"
-                    name="password"
-                    placeholder="Введите пароль"
-                />
-            </div>
-            <br />
-            <button type="submit" class="btn btn-primary">Войти</button>
-        </div>
-
-        <div class="row">
-            <p>или</p>
-        </div>
-
-        <div class="row">
-            <a href="#" class="telegram btn">
+    <div class="login-page">
+        <div class="form">
+            <a href="https://oauth.telegram.org/auth?bot_id={{BOTID}}&origin={{BOTDOMAIN}}" class="telegram btn">
                 <i class="fa fa-telegram fa-fw"></i> Войти с помощью Telegram
             </a>
         </div>
     </div>
 </form>
 
-<div class="bottom-container">
-    <div class="row">
-        <a href="/signup" style="color:white" class="btn">Sign up</a>
-    </div>
-</div>
-
 <style>
-    .row {
-        content: "";
-        display: table;
-        clear: both;
+    .login-page {
+        width: 50%;
+        padding: 8% 0 0;
+        margin: auto;
+    }
+
+    .form {
+        position: relative;
+        z-index: 1;
+        background: #343a40;
+        max-width: 500px;
+        margin: 0 auto 100px;
+        padding: 45px;
+        text-align: center;
     }
 
     input:hover,
     .btn:hover {
         opacity: 1;
-    }
-
-    .btn {
-        width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 4px;
-        margin: 5px 0;
-        opacity: 0.85;
-        display: inline-block;
-        font-size: 18px;
-        line-height: 20px;
-        text-decoration: none;
-    }
-
-    button[type=submit] {
-        background-color: #4CAF50;
-        color: white;
-        cursor: pointer;
-    }
-
-    button[type=submit]:hover {
-        background-color: #45a049;
+        background: #71b8ee;
     }
 
     .telegram {
         background-color: #55ACEE;
         color: white;
-    }
-
-    .bottom-container {
         text-align: center;
-        background-color: #666;
-        border-radius: 0px 0px 4px 4px;
+        display: block;
+        margin: auto;
+        width: 75%;
+        padding: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        word-break: break-all;
+        word-wrap: break-word;
     }
 </style>
 {% endblock %}

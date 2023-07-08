@@ -1,6 +1,6 @@
-from flask import Flask
+from flask import Flask, session, render_template, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, login_required
 from os import path
 
 app = Flask(__name__)
@@ -11,11 +11,11 @@ DB_NAME = "database.db"
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
 db.init_app(app)
 
-from .views import views
-app.register_blueprint(views, url_prefix='/')
+app.jinja_env.globals.update(BOTID = 5903687838) #айди бота из токена до знака ":"
+app.jinja_env.globals.update(BOTNAME = "BookingBot") #имя вашего бота с приставкой bot
+app.jinja_env.globals.update(BOTDOMAIN = "http://127.0.0.1:5000") #домен вашего сайта из /setdomain в BotFather (обычно http://127.0.0.1:5000)
 
-from .auth import auth
-app.register_blueprint(auth, url_prefix='/')
+from website import routes
 
 from .models import User
 with app.app_context():
