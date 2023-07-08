@@ -4,7 +4,7 @@ import map_renderer
 
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from aiogram import Bot, Dispatcher, executor, types
-from Backend.ObjectModels.user_request import user_request
+from Backend.ObjectModels.user_request import UserRequest
 from keyboards import get_start_kb, get_filter_kb, get_meal_type_kb, get_services_kb, calendar, \
     get_confirmation_children_kb, start_searching_kb
 
@@ -26,7 +26,7 @@ async def start_handler(message: types.Message):
         await message.answer('Закончите заполнять запрос')
         return
 
-    in_proses[message.from_user.id] = (user_request(message.from_user.id))
+    in_proses[message.from_user.id] = (UserRequest(message.from_user.id))
     context_dict[message.from_user.id] = "start"
     await message.answer('Здравствуйте, начнем работу', reply_markup=get_start_kb())
 
@@ -158,4 +158,4 @@ async def data_message_handler(message: types.Message):
         pass
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp)

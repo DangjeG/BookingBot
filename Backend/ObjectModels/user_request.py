@@ -1,7 +1,7 @@
 import datetime
 
 
-class user_request:
+class UserRequest:
     def __init__(self, user_id):
         self.user_id = user_id
         self.user_point = (0.0, 0.0)

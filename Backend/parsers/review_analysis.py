@@ -2,10 +2,10 @@ import time
 import numpy as np
 import pandas as pd
 import matplotlib.cm as cm
-import umap.umap_ as umap
 from bs4 import BeautifulSoup
 from matplotlib.colors import ListedColormap
 from razdel import sentenize
+import umap.umap_ as umap
 from selenium import webdriver
 from selenium.common import NoSuchElementException, ElementClickInterceptedException
 from selenium.webdriver.chrome.options import Options
@@ -111,7 +111,7 @@ def main():
         print("Предложения из этой группы:")
         for j in range(len(indices[i])):
             sentence = list(help_me.keys())[indices[i][j]]
-            print(f"Предложение: {sentence}")
+            print(sentence)
         print()
 
     print()
