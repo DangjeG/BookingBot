@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Об авторах{% endblock %}
+
+{% block content %}
+<div class="about-page">
+    <div class="about">
+        <h1>Создатели проекта</h1>
+        <a href="https://t.me/nastaa_tg" style="color: #fff;">
+            <div>Анастасия Горюнова</div>
+        </a>
+        <a href="https://t.me/qqualia" style="color: #fff;">
+            <div>Рустам Давлетханов</div>
+        </a>
+        <a href="https://t.me/Dangje" style="color: #fff;">
+            <div>Данила Дергунов</div>
+        </a>
+        <a href="https://t.me/foyeah" style="color: #fff;">
+            <div>Михаил Колчин</div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .about-page {
+        width: 50%;
+        padding: 8% 0 0;
+        margin: auto;
+    }
+
+    .about {
+        position: relative;
+        z-index: 1;
+        background: #343a40;
+        max-width: 500px;
+        margin: 0 auto 100px;
+        padding: 45px;
+        text-align: center;
+    }
+</style>
+
+{% endblock %}

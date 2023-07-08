@@ -4,88 +4,62 @@
 {% endblock %}
 
 {% block content %}
-    
-    <h1>Это домашняя страница</h1>
-
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
     <script src="https://cdn-geoweb.s3.amazonaws.com/esri-leaflet/0.0.1-beta.5/esri-leaflet.js"></script>
     <script src="https://cdn-geoweb.s3.amazonaws.com/esri-leaflet-geocoder/0.0.1-beta.5/esri-leaflet-geocoder.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
-    <script>
-        $( function() {
-          $( "#slider-range" ).slider({
-            range: true,
-            min: 100,
-            max: 100000,
-            values: [ 75, 300 ],
-            slide: function( event, ui ) {
-              $( "#price" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
-            }
-          });
-          $( "#price" ).val( "$" + $( "#slider-range" ).slider( "values", 0 ) +
-            " - $" + $( "#slider-range" ).slider( "values", 1 ) );
-        } );
-        </script>
 
-    <div class="filters">
-        <h1>Фильтры отелей</h1>
-        <form action="/hotels" method="post">
-            <label for="country">Страна</label>
-                <input type="text" id="country"><br>
-            <label for="city">Город</label>
-                <input type="text" id="city"><br>
-            <label for="radius_km">Радиус (в км)</label>
-                <input type="number" id="radius_km"><br>
-            <label for="date_in">Дата въезда</label>
-                <input type="date" id="date_in"><br>
-            <label for="date_out">Дата отъезда</label>
-                <input type="date" id="date_out"><br>
-            <label for="adults">Количество взрослых</label>
-                <input type="number" id="adults"><br>
-            <label for="childrens">Возраст ребёнка</label>
-                <input type="number" id="childrens"><br>
-            <label for="stars">Количество звёзд</label>
-                <input type="checkbox" id="0">0<br>
-                <input type="checkbox" id="1">1<br>
-                <input type="checkbox" id="2">2<br>
-                <input type="checkbox" id="3">3<br>
-                <input type="checkbox" id="4">4<br>
-                <input type="checkbox" id="5">5<br>
-            <label for="meal_types">Тип питания</label>
-                <input type="checkbox" id="nomeal">Без питания<br>
-                <input type="checkbox" id="breakfast">Завтрак<br>
-                <input type="checkbox" id="halfboard">Завтрак + обед/ужин<br>
-                <input type="checkbox" id="fullboard">Завтрак + обед + ужин<br>
-                <input type="checkbox" id="allinclusive">Всё включено<br>
-            <label for="price">Диапозон цен</label>
-                <input type="text" id="price" readonly style="border:0; color:#f6931f; font-weight:bold;">
-                <div id="slider-range"></div>
-            <label for="has_wifi">Wi-Fi в наличии</label>
-                <input type="checkbox" id="has_wifi"><br>
-            <label for="has_parking">Парковка в наличии</label>
-                <input type="checkbox" id="has_parking"><br>
-            <label for="has_pool">Бассейн в наличии</label>
-                <input type="checkbox" id="has_pool"><br>
-            <label for="air-conditioning">Кондиционер в наличии</label>
-                <input type="checkbox" id="air-conditioning"><br>
-            <label for="has_pets">Можно с животными</label>
-                <input type="checkbox" id="has_pets"><br>
-            <label for="has_airport_transfer,">Трансфер в наличии</label>
-                <input type="checkbox" id="has_airport_transfer,"><br>
-            <label for="has_meal">Ресторан в наличии</label>
-                <input type="checkbox" id="has_meal"><br>
-            <label for="amenities">Интернет в наличии</label>
-                <input type="checkbox" id="amenities"><br>
-            <!-- Здесь вы можете добавить другие поля фильтров -->
-            <input type="submit" value="Применить фильтры"><br>
-        </form>
+    <div class="row">
+        <div class="left">
+            <br><br><div id="map"></div>
+        </div>
+
+        <div class="right">
+            <div class="filters">
+                <br><h2>Фильтры</h2>
+                <form action="/hotels" method="post">
+                    <input type="text" id="country" placeholder="Страна"><br>
+                    <input type="text" id="city" placeholder="Город"><br>
+                    <input type="number" id="radius_km" placeholder="Радиус (в км)"><br>
+                    <input type="date" id="date_in" placeholder="Время въезда">Время въезда<br>
+                    <input type="date" id="date_out" placeholder="Время отъезда">Время отъезда<br>
+                    <input type="number" id="adults" placeholder="Количество взрослых"><br>
+                    <input type="number" id="childrens" placeholder="Возраст ребёнка"><br>
+                    
+                    <div class="stars">
+                        <input type="checkbox" id="0">0<br>
+                        <input type="checkbox" id="1">1<br>
+                        <input type="checkbox" id="2">2<br>
+                        <input type="checkbox" id="3">3<br>
+                        <input type="checkbox" id="4">4<br>
+                        <input type="checkbox" id="5">5<br>
+                    </div>
+                    
+                    <input type="checkbox" id="nomeal">Без питания<br>
+                    <input type="checkbox" id="breakfast">Завтрак<br>
+                    <input type="checkbox" id="halfboard">Завтрак + обед/ужин<br>
+                    <input type="checkbox" id="fullboard">Завтрак + обед + ужин<br>
+                    <input type="checkbox" id="allinclusive">Всё включено<br>
+
+                    <div class="price">
+                        <input type="text" id="min_price" placeholder="Минимальная цена">
+                        <input type="text" id="max_price" placeholder="Максимальная цена">
+                    </div>
+
+                    <input type="checkbox" id="has_wifi">Есть Wi-Fi<br>
+                    <input type="checkbox" id="has_parking">Есть парковка<br>
+                    <input type="checkbox" id="has_pool">Есть бассейн<br>
+                    <input type="checkbox" id="air-conditioning">Есть кондиционер<br>
+                    <input type="checkbox" id="has_pets">Можно с животными<br>
+                    <input type="checkbox" id="has_airport_transfer">Есть трансфер<br>
+                    <input type="checkbox" id="has_meal">Есть ресторан<br>
+                    <input type="submit" value="Применить фильтры"><br>
+                </form>
+            </div>
+        </div>
     </div>
-
-
-    <div id="map"></div>
-    
 
     <script>
         var map = L.map('map', {
@@ -122,9 +96,31 @@
     </script>
 
     <style>
+        .row {
+            display: flex;
+            width: 95%
+        }
+
+        .left {
+            width: 75%
+        }
+
+        .right {
+            width: 25%
+        }
+
         #map {
-        height: 400px;
-        width: 50%;
+            height: 500px;
+            width: 90%;
+        }
+
+        .stars{
+            display: flex;
+
+        }
+
+        .price {
+            display: flex;
         }
     </style>
 
