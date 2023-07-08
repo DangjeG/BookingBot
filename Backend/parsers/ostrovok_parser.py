@@ -10,12 +10,13 @@ from selenium.webdriver.support.wait import WebDriverWait
 from geopy.distance import great_circle as gd
 from geopy.geocoders import Nominatim
 from Backend.ObjectModels.hotel import Hotel
-
+from Backend.ObjectModels.user_request import UserRequest
+from parser import Parser
 
 MAIN_PAGE = "https://ostrovok.ru/"
 
 
-def get_city_url(country, city):
+def get_city_url(self, country, city):
     driver = webdriver.Chrome()
     driver.get(MAIN_PAGE)
     city_field = driver.find_element(By.CLASS_NAME, "Input-module__control--tqFEn")
@@ -68,7 +69,8 @@ def find_hotels(driver, hotels_url, user_point, radius):
                 geolocator = Nominatim(user_agent="user_agent")
                 try:
                     location = geolocator.geocode(
-                        item.find("p", class_="zen-hotelcard-address link").text.replace("ul. ", "").replace("Street", ""))
+                        item.find("p", class_="zen-hotelcard-address link").text.replace("ul. ", "").replace(
+                            "Street", ""))
                     float_values = (location.latitude, location.longitude)
 
                     if get_distance(hotel_coords=tuple([float(value) for value in float_values]),
@@ -93,42 +95,41 @@ def find_hotels(driver, hotels_url, user_point, radius):
     return hotels
 
 
-def main():
-    country = "Чехия"
-    city = "Прага"
-    user_point = (50.078883, 14.442296)
-    radius_km = 5
-    date_in = "14.08.2023"
-    date_out = "31.08.2023"
-    adults = "2"
-    childrens = ""  # указывается возраст ребёнка,
-    # если несколько детей, то возраста через точку
+class OstrovokParser:
+    user_request = UserRequest
 
-    # 0.1 / 2 / 3 / 4 / 5
-    stars = ""  # количество звёзд через точку
+    def __init__(self, user_request):
+        self.user_request = user_request
 
-    # без питания=nomeal; завтрак=breakfast,
-    # завтрак+обед/ужин=halfBoard,
-    # завтрак+обед+ужин=fullBoard,
-    # всё включено=allInclusive
-    meal_types = "nomeal"  # вводится через точку
+    @staticmethod
+    def parse():
+        country = "Чехия"
+        city = "Прага"
+        user_point = (50.078883, 14.442296)
+        radius_km = 5
+        date_in = "14.08.2023"
+        date_out = "31.08.2023"
+        adults = "2"
+        childrens = ""  # указывается возраст ребёнка,
+        # если несколько детей, то возраста через точку
 
-    # минимальное 100 рублей, максимум 100.000
-    price = "100-10000"
-    # wifi=has_internet, парковка=has_parking, бассейн=has_pool,
-    # кондиционер=air-conditioning, с животными=has_pets,
-    # трансфер=has_airport_transfer, бар/ресторан=has_meal
-    amenities = "has_internet.air-conditioning"  # вводится через точку
+        # 0.1 / 2 / 3 / 4 / 5
+        stars = ""  # количество звёзд через точку
 
-    url, driver = get_city_url(country=country, city=city)
-    url_with_filters = set_filters(url, date_in, date_out, adults, childrens, stars, meal_types, price, amenities)
-    print(url_with_filters)
+        # без питания=nomeal; завтрак=breakfast,
+        # завтрак+обед/ужин=halfBoard,
+        # завтрак+обед+ужин=fullBoard,
+        # всё включено=allInclusive
+        meal_types = "nomeal"  # вводится через точку
 
-    hotels = find_hotels(driver=driver, hotels_url=url_with_filters, user_point=user_point, radius=radius_km)
-    for hotel in hotels:
-        print(hotel)
-        print()
+        # минимальное 100 рублей, максимум 100.000
+        price = "100-10000"
+        # wifi=has_internet, парковка=has_parking, бассейн=has_pool,
+        # кондиционер=air-conditioning, с животными=has_pets,
+        # трансфер=has_airport_transfer, бар/ресторан=has_meal
+        amenities = "has_internet.air-conditioning"  # вводится через точку
 
+        url, driver = get_city_url(country=country, city=city)
+        url_with_filters = set_filters(url, date_in, date_out, adults, childrens, stars, meal_types, price, amenities)
 
-if __name__ == "__main__":
-    main()
+        return find_hotels(driver=driver, hotels_url=url_with_filters, user_point=user_point, radius=radius_km)

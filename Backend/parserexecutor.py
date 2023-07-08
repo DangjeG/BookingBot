@@ -2,11 +2,13 @@ from typing import List, Any
 
 from Backend.ObjectModels import user_request
 from Backend.ObjectModels.hotel import Hotel
-from parsers.parser import parser
+from parsers.parser import Parser
+from parsers import ostrovok_parser
+from parsers import parser_101
 
 
-class parser_executor:
-    parser = list[parser]
+class ParserExecutor:
+    parsers = list[Parser]
 
     def __init__(self, parsers):
         self.parsers = parsers

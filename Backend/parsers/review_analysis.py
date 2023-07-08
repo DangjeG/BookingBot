@@ -1,17 +1,19 @@
 import time
 import numpy as np
+import pandas as pd
+import matplotlib.cm as cm
 from bs4 import BeautifulSoup
+from matplotlib.colors import ListedColormap
+from razdel import sentenize
+import umap.umap_ as umap
 from selenium import webdriver
 from selenium.common import NoSuchElementException, ElementClickInterceptedException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from razdel import sentenize
-from transformers import BertModel, BertTokenizer
-import umap.umap_ as umap
-import pandas as pd
-import plotly.express as px
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
+from sklearn.neighbors import NearestNeighbors
+from transformers import BertModel, BertTokenizer
+import matplotlib.pyplot as plt
 
 
 def parse_review(hotel_url):
@@ -62,31 +64,13 @@ def main():
     tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
     model = BertModel.from_pretrained('bert-base-multilingual-cased')
     help_me = dict()
-    vectors = np.ndarray
+    vectors = []
     for sentence in sentences:
         encoded_input = tokenizer.encode(str(sentence.text), return_tensors='pt', truncation=True, padding=True)
         outputs = model(encoded_input)
-        vector = outputs[0][0].mean(dim=0).detach().numpy().reshape(-1, 1)
+        vector = outputs[0][0].mean(dim=0).detach().numpy()
         help_me[sentence.text] = vector
-        vectors = np.append(vectors, vector)
-    vectors = np.delete(vectors, 0).reshape(-1, 1)
-
-    # silhouette_scores = []  # Список для хранения оценок силуэта для различных чисел кластеров
-    # for n_cluster in range(2, 10):
-    #     kmeans = KMeans(n_clusters=n_cluster)
-    #     try:
-    #         kmeans.fit(vectors)
-    #     except TypeError:
-    #         continue
-    #     cluster_labels = kmeans.labels_
-    #
-    #     # Силуэтный коэффициент
-    #     silhouette_avg = silhouette_score(vectors, cluster_labels)
-    #     silhouette_scores.append(silhouette_avg)
-    #
-    # # Найдем оптимальное количество кластеров, которое соответствует максимальному силуэтному коэффициенту
-    # optimal_n_clusters = silhouette_scores.index(
-    #     max(silhouette_scores)) + 2  # +2 потому что мы начинаем с 2 кластеров
+        vectors.append(vector)
 
     # Создание экземпляра алгоритма K-средних
     kmeans = KMeans(n_clusters=n_clusters)
@@ -95,20 +79,42 @@ def main():
     # Получение меток кластеров для каждого вектора
     cluster_labels = kmeans.labels_
 
-    # Получение центроидов кластеров
-    cluster_centers = kmeans.cluster_centers_
-    # cluster_centroid = np.mean(vectors)
-
-    reducer = umap.UMAP(6)
+    reducer = umap.UMAP(7)
     vectors_reduced = reducer.fit_transform(vectors)
 
-    # Создайте DataFrame для удобства визуализации
+    # Создайте DataFrame с данными
     df = pd.DataFrame(vectors_reduced, columns=['UMAP1', 'UMAP2'])
-    df['Cluster'] = cluster_labels  # добавьте метки кластеров в DataFrame
+    df['Cluster'] = cluster_labels
 
-    # Визуализируйте результаты с помощью Plotly
-    fig = px.scatter(df, x='UMAP1', y='UMAP2', color='Cluster')  # используйте метки кластеров для окрашивания точек
-    fig.write_image("plot.png")
+    colors = cm.get_cmap('tab10', n_clusters)
+    cmap = ListedColormap(colors(np.linspace(0, 1, n_clusters)))
+
+    # Создайте график с помощью Matplotlib
+    plt.scatter(df['UMAP1'], df['UMAP2'], c=df['Cluster'], cmap=cmap)
+    plt.colorbar()
+
+    # Сохраните график в файл
+    plt.savefig("plot.png")
+
+    # Получение центроидов кластеров
+    cluster_centers = kmeans.cluster_centers_
+
+    # Создание экземпляра NearestNeighbors
+    nbrs = NearestNeighbors(n_neighbors=5, metric='euclidean').fit(vectors)
+
+    # Находим индексы ближайших соседей для каждого вектора из cluster_centers
+    distances, indices = nbrs.kneighbors(cluster_centers)
+
+    # Выводим результаты
+    for i in range(len(cluster_centers)):
+        print(f"Номер группы: {i}")
+        print("Предложения из этой группы:")
+        for j in range(len(indices[i])):
+            sentence = list(help_me.keys())[indices[i][j]]
+            print(sentence)
+        print()
+
+    print()
 
 
 if "__name__" == main():

@@ -2,7 +2,7 @@
 from aiogram import types
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 
-from Backend.ObjectModels.user_request import user_request
+from Backend.ObjectModels.user_request import UserRequest
 
 calendar, step = DetailedTelegramCalendar().build()
 
@@ -17,7 +17,7 @@ def get_start_kb():
     return start_kb
 
 
-def get_filter_kb(usr_req: user_request):
+def get_filter_kb(usr_req: UserRequest):
     filer_kb = types.InlineKeyboardMarkup(resize_markup=True)
     filer_kb.add(types.InlineKeyboardButton(text='Дата заезда: ' + str(usr_req.date_in), callback_data='date_check-in'))
     filer_kb.add(
