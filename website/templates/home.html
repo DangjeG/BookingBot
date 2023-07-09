@@ -18,11 +18,18 @@
 
         <div class="right">
             <div class="filters">
-                <br><h2>Фильтры</h2>
+                <h2>Фильтры</h2>
                 <form action="/hotels" method="POST">
                     <input type="number" min="1" id="radius_km" name="radius_km" placeholder="Радиус (в км)" /><br>
-                    <input type="date" id="date_in" name="date_in" placeholder="Время въезда" />Время въезда<br>
-                    <input type="date" id="date_out" name="date_out" placeholder="Время отъезда" />Время отъезда<br>
+
+                    <div class="date">
+                        <label class="date_in">Время въезда</label>
+                            <input type="date" id="date_in" name="date_in" placeholder="Время въезда" /><br>
+                        <label class="date_in">Время Отъезда</label>
+                            <input type="date" id="date_out" name="date_out" placeholder="Время отъезда" /><br>
+        
+                    </div>
+                    
                     <input type="number" min="0" id="adults" name="adults" placeholder="Количество взрослых" /><br>
                     <input type="number" min="0" id="childrens" name="childrens" placeholder="Возраст ребёнка" /><br>
                     
@@ -44,8 +51,8 @@
                     </div>         
 
                     <div class="price">
-                        <input type="text" min="100" max="99999" id="min_price" name="min_price" placeholder="Минимальная цена" />
-                        <input type="text" onchange="setMinValue()" max="100000" id="max_price" name="max_price" placeholder="Максимальная цена" />
+                        <input type="text" min="100" max="99999" id="min_price" name="min_price" placeholder="Минимальная цена" style="width: 75%;" />
+                        <input type="text" onchange="setMinValue()" max="100000" id="max_price" name="max_price" placeholder="Максимальная цена" style="width: 75%;" />
                         <script>
                             function setMinValue() {
                               var input1 = document.getElementById("min_price");
@@ -63,6 +70,8 @@
                     <input type="checkbox" id="has_pets" name="has_pets" />Можно с животными<br>
                     <input type="checkbox" id="has_airport_transfer" name="has_airport_transfer" />Есть трансфер<br>
                     <input type="checkbox" id="has_meal" name="has_meal" />Есть ресторан<br>
+
+                    <input type="hidden" id="coordinates" name="coordinates" />
                     <input type="submit" value="Применить фильтры" /><br>
                 </form>
             </div>
@@ -92,6 +101,7 @@
         L.control.scale().addTo(map);
 
         var marker;
+        var coordinates;
 
         map.on('click', function(e) {
             if (marker) {
@@ -99,6 +109,8 @@
             }
 
             marker = L.marker(e.latlng).addTo(map);
+            coordinates = marker.getLatLng();
+            document.getElementById("coordinates").value = coordinates;
         });
 
         var searchControl = new L.esri.Controls.Geosearch().addTo(map);
@@ -115,15 +127,17 @@
     <style>
         .row {
             display: flex;
-            width: 95%
+            width: 100%
         }
 
         .left {
-            width: 75%
+            width: 60%
         }
 
         .right {
-            width: 25%
+            width: 40%;
+            padding: 4% 0 0;
+            margin: auto;
         }
 
         #map {
@@ -133,11 +147,20 @@
 
         .stars{
             display: flex;
-
+            margin: 10px;
         }
 
         .price {
             display: flex;
+        }
+
+        .filters {
+            z-index: 1;
+            background: #343a40;
+            max-width: 500px;
+            margin: 0 auto 100px;
+            padding: 45px;
+            text-align: center;
         }
     </style>
 

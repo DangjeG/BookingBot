@@ -1,4 +1,3 @@
-# todo кнопошки для удобного выбора информации
 from aiogram import types
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 
