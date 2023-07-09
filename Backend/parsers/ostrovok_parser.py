@@ -9,14 +9,15 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from geopy.distance import great_circle as gd
 from geopy.geocoders import Nominatim
-from Backend.ObjectModels.hotel import Hotel
+
 from Backend.ObjectModels.user_request import UserRequest
+from Backend.ObjectModels.hotel import Hotel
 from parser import Parser
 
 MAIN_PAGE = "https://ostrovok.ru/"
 
 
-def get_city_url(self, country, city):
+def get_city_url(country, city):
     driver = webdriver.Chrome()
     driver.get(MAIN_PAGE)
     city_field = driver.find_element(By.CLASS_NAME, "Input-module__control--tqFEn")
@@ -95,21 +96,17 @@ def find_hotels(driver, hotels_url, user_point, radius):
     return hotels
 
 
-class OstrovokParser:
-    user_request = UserRequest
-
-    def __init__(self, user_request):
-        self.user_request = user_request
-
+class OstrovokParser(Parser):
     @staticmethod
-    def parse():
-        country = "Чехия"
-        city = "Прага"
-        user_point = (50.078883, 14.442296)
-        radius_km = 5
-        date_in = "14.08.2023"
-        date_out = "31.08.2023"
-        adults = "2"
+    def get_hotels(user_request: UserRequest):
+        geolocator = Nominatim(user_agent="user_agent")
+        location = geolocator.reverse(user_request.user_point)
+        country = location.raw['address'].get('country', '')
+        city = location.raw['address'].get('city', '')
+        radius_km = user_request.radius_km
+        date_in = str(user_request.date_in)
+        date_out = str(user_request.date_out)
+        adults = str(user_request.adults)
         childrens = ""  # указывается возраст ребёнка,
         # если несколько детей, то возраста через точку
 
@@ -130,6 +127,12 @@ class OstrovokParser:
         amenities = "has_internet.air-conditioning"  # вводится через точку
 
         url, driver = get_city_url(country=country, city=city)
-        url_with_filters = set_filters(url, date_in, date_out, adults, childrens, stars, meal_types, price, amenities)
+        url_with_filters = set_filters(url, date_in, date_out, adults,
+                                       childrens, stars, meal_types, price, amenities)
 
-        return find_hotels(driver=driver, hotels_url=url_with_filters, user_point=user_point, radius=radius_km)
+        return find_hotels(driver=driver, hotels_url=url_with_filters,
+                           user_point=user_request.user_point, radius=radius_km)
+
+
+if __name__ == '__main__':
+    OstrovokParser.get_hotels(UserRequest(user_id=0))
