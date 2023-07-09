@@ -15,13 +15,11 @@ app.jinja_env.globals.update(BOTID=5903687838)
 app.jinja_env.globals.update(BOTNAME="BookingBot")
 app.jinja_env.globals.update(BOTDOMAIN="http://127.0.0.1:5000")
 
-from website import routes
 
-from .models import User
+from website import routes
 
 with app.app_context():
     db.create_all()
-
 
 def create_database(app):
     if not path.exists('website/' + DB_NAME):

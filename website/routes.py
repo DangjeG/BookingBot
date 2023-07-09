@@ -1,5 +1,5 @@
-from flask import Flask, redirect, render_template, request, session, flash
-from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
+from flask import redirect, render_template, request, session
+from flask_login import LoginManager, login_required
 
 from . import app
 from .models import User
@@ -61,4 +61,3 @@ def hotels():
     inputs = request.form.values()
     print(', '.join(inputs))
     return render_template('hotels.html')
-
