@@ -59,5 +59,5 @@ def about():
 @app.route('/hotels', methods=['POST'])
 def hotels():
     inputs = request.form.values()
-    print( ', '.join(inputs))
+    print(', '.join(inputs))
     return render_template('hotels.html')
