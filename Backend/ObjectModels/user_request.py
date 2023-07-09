@@ -10,7 +10,7 @@ class UserRequest:
         self.date_out = datetime.date.today() + datetime.timedelta(days=1)
         self.adults = 1
         self.children_ages = []
-        self.stars = ''
+        self.stars = []
         self.meal_types = []
         self.price = '100-100000'
         self.services = []

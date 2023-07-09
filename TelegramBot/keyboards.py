@@ -1,4 +1,3 @@
-# todo кнопошки для удобного выбора информации
 from aiogram import types
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 
@@ -28,7 +27,7 @@ def get_filter_kb(usr_req: UserRequest):
         types.InlineKeyboardButton(text='Возраст детей: ' + list_to_str(usr_req.children_ages),
                                    callback_data='children_ages'))
     filer_kb.add(
-        types.InlineKeyboardButton(text='Количество звезд: ' + usr_req.stars, callback_data='stars_number'))
+        types.InlineKeyboardButton(text='Количество звезд: ' + list_to_str(usr_req.stars), callback_data='stars_number'))
     filer_kb.add(types.InlineKeyboardButton(text='Цена: ' + usr_req.price, callback_data='price'))
     filer_kb.add(types.InlineKeyboardButton(text='Питание: ' + list_to_str(usr_req.meal_types), callback_data='meal_type'))
     filer_kb.add(
@@ -37,17 +36,9 @@ def get_filter_kb(usr_req: UserRequest):
     return filer_kb
 
 
-def get_meal_type_kb(meal_types):
+def get_ans_list_kb(ans):
     kb = types.ReplyKeyboardMarkup()
-    for el in meal_types:
-        kb.add(types.KeyboardButton(text=el))
-    kb.row(types.KeyboardButton(text="Закончить"))
-    return kb
-
-
-def get_services_kb(services):
-    kb = types.ReplyKeyboardMarkup()
-    for el in services:
+    for el in ans:
         kb.add(types.KeyboardButton(text=el))
     kb.row(types.KeyboardButton(text="Закончить"))
     return kb
