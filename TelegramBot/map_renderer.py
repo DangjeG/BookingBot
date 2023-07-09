@@ -27,5 +27,5 @@ fig.update_layout(
 
 # Отображение карты
 # fig.show()
-fig.write_image("map.png")
+#fig.write_image("map.png")
 

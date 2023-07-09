@@ -1,15 +1,15 @@
-# todo сделать нормальное общение с
 import datetime
 import map_renderer
 
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from aiogram import Bot, Dispatcher, executor, types
 from Backend.ObjectModels.user_request import UserRequest
-from keyboards import get_start_kb, get_filter_kb, get_meal_type_kb, get_services_kb, calendar, \
+from keyboards import get_start_kb, get_filter_kb, get_ans_list_kb, calendar, \
     get_confirmation_children_kb, start_searching_kb
 
 meal_types = ["без питания", "завтрак", "завтрак+обед/ужин", "завтрак+обед+ужин", "всё включено"]
 services = ["wifi", "парковка", "бассейн", "кондиционер", "с животными", "трансфер", "бар/ресторан"]
+stars = ["Без звезд", "1 звезда", "2 звезды", "3 звезды", "4 звезды", "5 звезд"]
 
 in_proses = {}
 context_dict = {}
@@ -70,7 +70,7 @@ async def children_ages_handler(callback: types.CallbackQuery):
 @dp.callback_query_handler(text="stars_number")
 async def stars_number_handler(callback: types.CallbackQuery):
     context_dict[callback.from_user.id] = "stars_number"
-    await callback.message.answer("Введите количество звезд: ")
+    await callback.message.answer("Выберите количество звезд: ", reply_markup=get_ans_list_kb(stars))
 
 
 @dp.callback_query_handler(text="price")
@@ -82,13 +82,13 @@ async def price_handler(callback: types.CallbackQuery):
 @dp.callback_query_handler(text="meal_type")
 async def meal_type_handler(callback: types.CallbackQuery):
     context_dict[callback.from_user.id] = "meal_type"
-    await callback.message.answer("Добавьте тип питания: ", reply_markup=get_meal_type_kb(meal_types))
+    await callback.message.answer("Добавьте тип питания: ", reply_markup=get_ans_list_kb(meal_types))
 
 
 @dp.callback_query_handler(text="services")
 async def services_handler(callback: types.CallbackQuery):
     context_dict[callback.from_user.id] = "services"
-    await callback.message.answer("Добавьте доп сервисы: ", reply_markup=get_services_kb(services))
+    await callback.message.answer("Добавьте доп сервисы: ", reply_markup=get_ans_list_kb(services))
 
 
 @dp.callback_query_handler(text="finish")
@@ -115,7 +115,6 @@ async def cal(callback: types.CallbackQuery):
 
 @dp.message_handler()
 async def data_message_handler(message: types.Message):
-
     context = context_dict[message.from_user.id]
     if context == "adults_number":
         in_proses[message.from_user.id].adults = int(message.text)
@@ -132,15 +131,36 @@ async def data_message_handler(message: types.Message):
         context_dict[message.from_user.id] = "add_filters"
 
     elif context == "meal_type":
-        in_proses[message.from_user.id].meal_type = message.text
-        await message.answer(text="Фильтр добавлен", reply_markup=types.ReplyKeyboardRemove())
-        await message.answer("Выберите фильтры", reply_markup=get_filter_kb(in_proses[message.from_user.id]))
-        context_dict[message.from_user.id] = "add_filters"
+        if in_proses[message.from_user.id].meal_types.count(message.text) == 1:
+            in_proses[message.from_user.id].meal_types.remove(message.text)
+        elif message.text == "Закончить":
+            await message.answer(text="Фильтры добавлены", reply_markup=types.ReplyKeyboardRemove())
+            await message.answer("Выберите фильтры", reply_markup=get_filter_kb(in_proses[message.from_user.id]))
+            context_dict[message.from_user.id] = "add_filters"
+        else:
+            in_proses[message.from_user.id].meal_types.append(message.text)
 
     elif context == "stars_number":
-        in_proses[message.from_user.id].stars = int(message.text)
-        await message.answer("Выберите фильтры", reply_markup=get_filter_kb(in_proses[message.from_user.id]))
-        context_dict[message.from_user.id] = "add_filters"
+
+        if message.text == "Закончить":
+            await message.answer(text="Фильтры добавлены", reply_markup=types.ReplyKeyboardRemove())
+            await message.answer("Выберите фильтры", reply_markup=get_filter_kb(in_proses[message.from_user.id]))
+            context_dict[message.from_user.id] = "add_filters"
+            return
+
+        st = message.text.split(" ")[0]
+        if st == "Без":
+            st = "0"
+        num = int(st)
+        if in_proses[message.from_user.id].stars.count(num) == 1:
+            in_proses[message.from_user.id].stars.remove(num)
+        else:
+            in_proses[message.from_user.id].stars.append(num)
+
+    elif context == "finish":
+        in_proses[message.from_user.id].radius_km = int(message.text)
+        await message.answer("Тут будут выводится отели", reply_markup=start_searching_kb)
+        pass
 
     elif context == "services":
         if in_proses[message.from_user.id].services.count(message.text) == 1:
@@ -156,6 +176,8 @@ async def data_message_handler(message: types.Message):
         in_proses[message.from_user.id].radius_km = int(message.text)
         await message.answer("Тут будут выводится отели", reply_markup=start_searching_kb)
         pass
+    else:
+        await message.answer("Я вас не понимаю", reply_markup=start_searching_kb)
 
 if __name__ == '__main__':
-    executor.start_polling(dp)
+    executor.start_polling(dp, skip_updates=True)
