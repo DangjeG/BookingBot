@@ -2,7 +2,7 @@ import datetime
 
 
 class UserRequest:
-    def __init__(self, user_id):
+    def __init__(self, user_id, creation_date = datetime.date.today()):
         self.user_id = user_id
         self.user_point = (55.160797, 61.402509)
         self.radius_km = 5
@@ -14,6 +14,7 @@ class UserRequest:
         self.meal_types = []
         self.price = '100-100000'
         self.services = []
+        self.creation_date = creation_date
 
     def __str__(self):
         return f"UserRequest(user_id={self.user_id}, " \
