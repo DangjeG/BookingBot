@@ -2,9 +2,7 @@ from typing import List, Any
 
 from Backend.ObjectModels.user_request import UserRequest
 from Backend.ObjectModels.hotel import Hotel
-from parsers.parser import Parser
-from parsers import ostrovok_parser
-from parsers import parser_101
+from Backend.parsers.parser import Parser
 
 
 class ParserExecutor:

@@ -27,28 +27,35 @@
                             <input type="date" id="date_in" name="date_in" placeholder="Время въезда" /><br>
                         <label class="date_in">Время Отъезда</label>
                             <input type="date" id="date_out" name="date_out" placeholder="Время отъезда" /><br>
-        
                     </div>
                     
-                    <input type="number" min="0" id="adults" name="adults" placeholder="Количество взрослых" /><br>
-                    <input type="number" min="0" id="childrens" name="childrens" placeholder="Возраст ребёнка" /><br>
+                    <input type="number" min="0" id="adults" name="adults" placeholder="Количество взрослых" /><br><br>
+
+                    <div class="childrens">
+                        <label for="childrens">Введите возраст детей (ненужные поля оставьте пустыми)</label>
+                            <input type="number" min="0" max="17" id="first" name="first" placeholder="Возраст первого ребёнка"/><br>
+                            <input type="number" min="0" max="17" id="second" name="second" placeholder="Возраст второго ребёнка"/><br>
+                            <input type="number" min="0" max="17" id="third" name="third" placeholder="Возраст третьего ребёнка"/><br>
+                    </div>
                     
                     <div class="stars">
-                        <input type="checkbox" id="0" name="0" />0<br>
-                        <input type="checkbox" id="1" name="1" />1<br>
-                        <input type="checkbox" id="2" name="2" />2<br>
-                        <input type="checkbox" id="3" name="3" />3<br>
-                        <input type="checkbox" id="4" name="4" />4<br>
-                        <input type="checkbox" id="5" name="5" />5<br>
+                        <label for="stars">Выберите количество звёзд</label>
+                            <input type="checkbox" id="0" name="0" />0<br>
+                            <input type="checkbox" id="1" name="1" />1<br>
+                            <input type="checkbox" id="2" name="2" />2<br>
+                            <input type="checkbox" id="3" name="3" />3<br>
+                            <input type="checkbox" id="4" name="4" />4<br>
+                            <input type="checkbox" id="5" name="5" />5<br>
                     </div>
-                    
+
                     <div class="mealtype">
-                        <input type="checkbox" id="nomeal" name="nomeal" />Без питания<br>
-                        <input type="checkbox" id="breakfast" name="breakfast" />Завтрак<br>
-                        <input type="checkbox" id="halfboard" name="halfboard" />Завтрак + обед/ужин<br>
-                        <input type="checkbox" id="fullboard" name="fullboard" />Завтрак + обед + ужин<br>
-                        <input type="checkbox" id="allinclusive" name="allinclusive" />Всё включено<br>
-                    </div>         
+                        <label for="mealtype">Выбирите тип питания</label><br>
+                            <input type="checkbox" id="type1" name="nomeal" />Без питания<br>
+                            <input type="checkbox" id="type2" name="breakfast" />Завтрак<br>
+                            <input type="checkbox" id="type3" name="halfboard" />Завтрак + обед/ужин<br>
+                            <input type="checkbox" id="type4" name="fullboard" />Завтрак + обед + ужин<br>
+                            <input type="checkbox" id="type5" name="allinclusive" />Всё включено<br>
+                    </div>              
 
                     <div class="price">
                         <input type="text" min="100" max="99999" id="min_price" name="min_price" placeholder="Минимальная цена" style="width: 75%;" />
@@ -62,16 +69,20 @@
                             }
                           </script>
                     </div>
-
-                    <input type="checkbox" id="has_wifi" name="has_wifi" />Есть Wi-Fi<br>
-                    <input type="checkbox" id="has_parking" name="has_parking" />Есть парковка<br>
-                    <input type="checkbox" id="has_pool" name="has_pool" />Есть бассейн<br>
-                    <input type="checkbox" id="air_conditioning" name="air_conditioning" />Есть кондиционер<br>
-                    <input type="checkbox" id="has_pets" name="has_pets" />Можно с животными<br>
-                    <input type="checkbox" id="has_airport_transfer" name="has_airport_transfer" />Есть трансфер<br>
-                    <input type="checkbox" id="has_meal" name="has_meal" />Есть ресторан<br>
+                    
+                    <div class="services">
+                        <input type="checkbox" id="service1" name="has_wifi" />Есть Wi-Fi<br>
+                        <input type="checkbox" id="service2" name="has_parking" />Есть парковка<br>
+                        <input type="checkbox" id="service3" name="has_pool" />Есть бассейн<br>
+                        <input type="checkbox" id="service4" name="air_conditioning" />Есть кондиционер<br>
+                        <input type="checkbox" id="service5" name="has_pets" />Можно с животными<br>
+                        <input type="checkbox" id="service6" name="has_airport_transfer" />Есть трансфер<br>
+                        <input type="checkbox" id="service7" name="has_meal" />Есть ресторан<br>
+                    </div>                  
 
                     <input type="hidden" id="coordinates" name="coordinates" />
+                    <input type="hidden" id="lat" name="lat" />
+                    <input type="hidden" id="lng" name="lng" />
                     <input type="submit" value="Применить фильтры" /><br>
                 </form>
             </div>
@@ -110,10 +121,21 @@
 
             marker = L.marker(e.latlng).addTo(map);
             coordinates = marker.getLatLng();
+            lat = marker.getLatLng().lat;
+            lng = marker.getLatLng().lng
             document.getElementById("coordinates").value = coordinates;
+            document.getElementById("lat").value = lat;
+            document.getElementById("lng").value = lng;
         });
 
-        var searchControl = new L.esri.Controls.Geosearch().addTo(map);
+        var searchControl = new L.esri.Controls.Geosearch({
+            position: 'topright',
+            layer: L.geoJSON(),
+            propertyName: 'name',
+            marker: true,
+            collapsed: false,
+            textPlaceholder: 'Поиск...'
+        }).addTo(map);
         var results = new L.LayerGroup().addTo(map);
 
             searchControl.on('results', function(data){
@@ -140,11 +162,6 @@
             margin: auto;
         }
 
-        #map {
-            height: 500px;
-            width: 90%;
-        }
-
         .stars{
             display: flex;
             margin: 10px;
@@ -161,6 +178,18 @@
             margin: 0 auto 100px;
             padding: 45px;
             text-align: center;
+        }
+
+        #map {
+            height: 500px;
+            width: 90%;
+        }
+
+        .leaflet-control-search {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
         }
     </style>
 

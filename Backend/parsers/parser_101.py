@@ -12,7 +12,7 @@ from Backend.ObjectModels.hotel import Hotel
 import re
 
 from Backend.ObjectModels.user_request import UserRequest
-from parser import Parser
+from Backend.parsers.parser import Parser
 
 MAIN_PAGE = "https://101hotels.com"
 services_mapping = {
@@ -144,6 +144,9 @@ class Parser101Hotels(Parser):
         geolocator = Nominatim(user_agent="user_agent")
         location = geolocator.reverse(user_request.user_point)
         country = location.raw['address'].get('country', '')
+        if country != "Россия":
+            return []
+        
         city = location.raw['address'].get('city', '')
 
         country_url = get_country_url(country=country, countries_html=get_source_html(url=MAIN_PAGE + "/countries"))

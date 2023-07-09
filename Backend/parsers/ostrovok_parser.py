@@ -14,7 +14,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from Backend.ObjectModels.hotel import Hotel
 from Backend.ObjectModels.user_request import UserRequest
 
-from parser import Parser
+from Backend.parsers.parser import Parser
 
 MAIN_PAGE = "https://ostrovok.ru/"
 services_mapping = {
@@ -151,6 +151,9 @@ class OstrovokParser(Parser):
         geolocator = Nominatim(user_agent="user_agent")
         location = geolocator.reverse(user_request.user_point)
         country = location.raw['address'].get('country', '')
+        if country == "Россия":
+            return []
+        
         city = location.raw['address'].get('city', '')
 
         url, driver = get_city_url(country=country, city=city)
