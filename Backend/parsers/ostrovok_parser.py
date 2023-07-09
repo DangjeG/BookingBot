@@ -151,6 +151,8 @@ class OstrovokParser(Parser):
         geolocator = Nominatim(user_agent="user_agent")
         location = geolocator.reverse(user_request.user_point)
         country = location.raw['address'].get('country', '')
+        if country == "Россия":
+            return []
         city = location.raw['address'].get('city', '')
 
         url, driver = get_city_url(country=country, city=city)

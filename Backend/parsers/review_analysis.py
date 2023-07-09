@@ -56,11 +56,10 @@ def parse_review(hotel_url):
     return reviews
 
 
-def main():
-    reviews = parse_review("https://101hotels.com/main/cities/chelyabinsk/gostinitsa_markshtadt.html?adults=2&in=03.08.2023&out=09.08.2023&selected_room_id=2247336&selected_placement_id=544804")
+def analyze(hotel_url):
+    reviews = parse_review(hotel_url)
     sentences = list(sentenize(reviews))
     n_clusters = 8
-
     tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
     model = BertModel.from_pretrained('bert-base-multilingual-cased')
     help_me = dict()
@@ -72,50 +71,29 @@ def main():
         help_me[sentence.text] = vector
         vectors.append(vector)
 
-    # Создание экземпляра алгоритма K-средних
     kmeans = KMeans(n_clusters=n_clusters)
-    # Процесс кластеризации
     kmeans.fit(vectors)
-    # Получение меток кластеров для каждого вектора
     cluster_labels = kmeans.labels_
-
     reducer = umap.UMAP(7)
     vectors_reduced = reducer.fit_transform(vectors)
-
-    # Создайте DataFrame с данными
     df = pd.DataFrame(vectors_reduced, columns=['UMAP1', 'UMAP2'])
     df['Cluster'] = cluster_labels
-
     colors = cm.get_cmap('tab10', n_clusters)
     cmap = ListedColormap(colors(np.linspace(0, 1, n_clusters)))
-
-    # Создайте график с помощью Matplotlib
     plt.scatter(df['UMAP1'], df['UMAP2'], c=df['Cluster'], cmap=cmap)
     plt.colorbar()
-
-    # Сохраните график в файл
     plt.savefig("plot.png")
-
-    # Получение центроидов кластеров
     cluster_centers = kmeans.cluster_centers_
-
-    # Создание экземпляра NearestNeighbors
     nbrs = NearestNeighbors(n_neighbors=5, metric='euclidean').fit(vectors)
-
-    # Находим индексы ближайших соседей для каждого вектора из cluster_centers
     distances, indices = nbrs.kneighbors(cluster_centers)
 
-    # Выводим результаты
+    results = []
     for i in range(len(cluster_centers)):
-        print(f"Номер группы: {i}")
-        print("Предложения из этой группы:")
+        results.append(f"Номер группы: {i}")
+        results.append("Предложения из этой группы:")
         for j in range(len(indices[i])):
             sentence = list(help_me.keys())[indices[i][j]]
-            print(sentence)
-        print()
+            results.append(sentence)
+        results.append("\n")
 
-    print()
-
-
-if "__name__" == main():
-    main()
+    return results
