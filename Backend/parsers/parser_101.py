@@ -144,6 +144,8 @@ class Parser101Hotels(Parser):
         geolocator = Nominatim(user_agent="user_agent")
         location = geolocator.reverse(user_request.user_point)
         country = location.raw['address'].get('country', '')
+        if country != "Россия":
+            return []
         city = location.raw['address'].get('city', '')
 
         country_url = get_country_url(country=country, countries_html=get_source_html(url=MAIN_PAGE + "/countries"))
