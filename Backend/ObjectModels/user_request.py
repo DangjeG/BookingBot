@@ -10,9 +10,9 @@ class UserRequest:
         self.date_out = datetime.date.today() + datetime.timedelta(days=1)
         self.adults = 1
         self.children_ages = []
-        self.stars = 5
-        self.meal_types = ""
-        self.price = '100-10000'
+        self.stars = ''
+        self.meal_types = []
+        self.price = '100-100000'
         self.services = []
 
     def __str__(self):

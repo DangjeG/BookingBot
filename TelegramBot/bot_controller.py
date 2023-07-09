@@ -132,13 +132,17 @@ async def data_message_handler(message: types.Message):
         context_dict[message.from_user.id] = "add_filters"
 
     elif context == "meal_type":
-        in_proses[message.from_user.id].meal_type = message.text
-        await message.answer(text="Фильтр добавлен", reply_markup=types.ReplyKeyboardRemove())
-        await message.answer("Выберите фильтры", reply_markup=get_filter_kb(in_proses[message.from_user.id]))
-        context_dict[message.from_user.id] = "add_filters"
+        if in_proses[message.from_user.id].meal_types.count(message.text) == 1:
+            in_proses[message.from_user.id].meal_types.remove(message.text)
+        elif message.text == "Закончить":
+            await message.answer(text="Фильтры добавлены", reply_markup=types.ReplyKeyboardRemove())
+            await message.answer("Выберите фильтры", reply_markup=get_filter_kb(in_proses[message.from_user.id]))
+            context_dict[message.from_user.id] = "add_filters"
+        else:
+            in_proses[message.from_user.id].meal_types.append(message.text)
 
     elif context == "stars_number":
-        in_proses[message.from_user.id].stars = int(message.text)
+        in_proses[message.from_user.id].stars = message.text
         await message.answer("Выберите фильтры", reply_markup=get_filter_kb(in_proses[message.from_user.id]))
         context_dict[message.from_user.id] = "add_filters"
 
@@ -158,4 +162,4 @@ async def data_message_handler(message: types.Message):
         pass
 
 if __name__ == '__main__':
-    executor.start_polling(dp)
+    executor.start_polling(dp, skip_updates=True)
