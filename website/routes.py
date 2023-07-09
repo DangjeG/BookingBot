@@ -55,3 +55,10 @@ def logout():
 @app.route('/about')
 def about():
     return render_template("about.html")
+
+@app.route('/hotels', methods=['POST'])
+def hotels():
+    inputs = request.form.values()
+    print(', '.join(inputs))
+    return render_template('hotels.html')
+

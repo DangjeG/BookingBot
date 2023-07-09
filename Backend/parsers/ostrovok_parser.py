@@ -1,18 +1,20 @@
-import time
 import re
+import time
+
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.common import NoSuchElementException, ElementClickInterceptedException
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
 from geopy.distance import great_circle as gd
 from geopy.geocoders import Nominatim
+from selenium import webdriver
+from selenium.common import (ElementClickInterceptedException, NoSuchElementException)
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
-from Backend.ObjectModels.user_request import UserRequest
 from Backend.ObjectModels.hotel import Hotel
-from parser import Parser
+from Backend.ObjectModels.user_request import UserRequest
+
+from . import Parser
 
 MAIN_PAGE = "https://ostrovok.ru/"
 
