@@ -162,7 +162,6 @@ async def data_message_handler(message: types.Message):
         await message.answer("Тут будут выводится отели", reply_markup=start_searching_kb)
         pass
 
-
     elif context == "services":
         if in_proses[message.from_user.id].services.count(message.text) == 1:
             in_proses[message.from_user.id].services.remove(message.text)

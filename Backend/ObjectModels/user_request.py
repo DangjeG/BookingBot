@@ -27,4 +27,3 @@ class UserRequest:
                f"meal_types={self.meal_types}, " \
                f"price={self.price}, " \
                f"services={self.services})"
-

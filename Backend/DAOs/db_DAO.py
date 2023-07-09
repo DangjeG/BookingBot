@@ -1,40 +1,28 @@
-import sqlite3
+import psycopg2
 
+# Установка параметров подключения
+connection_params = {
+    "host": "your_host",
+    "port": "your_port",
+    "database": "your_database",
+    "user": "your_username",
+    "password": "your_password"
+}
 
-class DataBaseHelper:
-    def __init__(self, dbname):
-        self.dbname = dbname
-        self.conn = sqlite3.connect(dbname)
+# Установка соединения
+conn = psycopg2.connect(**connection_params)
 
-    def create_table(self, tablename, columns):
-        query = f"CREATE TABLE IF NOT EXISTS {tablename} ({columns})"
-        self.conn.execute(query)
+# Создание курсора
+cursor = conn.cursor()
 
-    def insert_data(self, tablename, data):
-        query = f"INSERT INTO {tablename} VALUES ({data})"
-        self.conn.execute(query)
+# Выполнение SQL-запросов
+cursor.execute("SELECT * FROM your_table")
+result = cursor.fetchall()
 
-    def select_data(self, tablename, columns=None, condition=None):
-        if columns:
-            query = f"SELECT {columns} FROM {tablename}"
-        else:
-            query = f"SELECT * FROM {tablename}"
-        if condition:
-            query += f" WHERE {condition}"
-        cursor = self.conn.execute(query)
-        return cursor.fetchall()
+# Обработка результатов запроса
+for row in result:
+    print(row)
 
-    def update_data(self, tablename, set_clause, condition=None):
-        query = f"UPDATE {tablename} SET {set_clause}"
-        if condition:
-            query += f" WHERE {condition}"
-        self.conn.execute(query)
-
-    def delete_data(self, tablename, condition=None):
-        query = f"DELETE FROM {tablename}"
-        if condition:
-            query += f" WHERE {condition}"
-        self.conn.execute(query)
-
-    def close_connection(self):
-        self.conn.close()
+# Закрытие курсора и соединения
+cursor.close()
+conn.close()
