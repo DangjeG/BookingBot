@@ -162,7 +162,6 @@ async def data_message_handler(message: types.Message):
         await message.answer("Тут будут выводится отели", reply_markup=start_searching_kb)
         pass
 
-
     elif context == "services":
         if in_proses[message.from_user.id].services.count(message.text) == 1:
             in_proses[message.from_user.id].services.remove(message.text)
@@ -177,7 +176,8 @@ async def data_message_handler(message: types.Message):
         in_proses[message.from_user.id].radius_km = int(message.text)
         await message.answer("Тут будут выводится отели", reply_markup=start_searching_kb)
         pass
-
+    else:
+        await message.answer("Я вас не понимаю", reply_markup=start_searching_kb)
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
