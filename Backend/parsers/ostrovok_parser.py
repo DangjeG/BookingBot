@@ -1,10 +1,10 @@
 import re
 import time
-
 from bs4 import BeautifulSoup
 from geopy.distance import great_circle as gd
 from geopy.geocoders import Nominatim
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.common import (ElementClickInterceptedException, NoSuchElementException)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -14,13 +14,24 @@ from selenium.webdriver.support.wait import WebDriverWait
 from Backend.ObjectModels.hotel import Hotel
 from Backend.ObjectModels.user_request import UserRequest
 
-from . import Parser
+from parser import Parser
 
 MAIN_PAGE = "https://ostrovok.ru/"
+services_mapping = {
+    'wifi': 'has_internet',
+    'парковка': 'has_parking',
+    'бассейн': 'has_pool',
+    'бар/ресторан': 'has_meal',
+    'кондиционер': 'conditioning',
+    'с животными': 'has_pets',
+    'трансфер': 'has_airport_transfer'
+}
 
 
 def get_city_url(country, city):
-    driver = webdriver.Chrome()
+    options = Options()
+    options.add_argument('headless')
+    driver = webdriver.Chrome(options=options)
     driver.get(MAIN_PAGE)
     city_field = driver.find_element(By.CLASS_NAME, "Input-module__control--tqFEn")
     city_field.clear()
@@ -32,23 +43,6 @@ def get_city_url(country, city):
                         "Button-module__button_wide--eV274").click()
 
     return driver.current_url, driver
-
-
-def set_filters(url, date_in, date_out, adults, childrens, stars, meal_types, price, amenities):
-    url = url.replace("price=one", "price=" + price + ".one")
-    url = url.split('dates=')[0] + 'dates=' + date_in + "-" + date_out + '&' + '&'.join(
-        url.split('&')[1:])
-
-    if childrens == "":
-        url = url.split('guests=')[0] + 'guests=' + adults + '&' + '&'.join(
-            url.split('&')[1:])
-    else:
-        url = url.split('guests=')[0] + 'guests=' + adults + "and" + childrens + '&' + '&'.join(
-            url.split('&')[1:])
-
-    url += "&meal_types=" + meal_types + "&stars=" + stars + "&amenities=" + amenities
-
-    return url
 
 
 def get_distance(hotel_coords, user_coords):
@@ -98,6 +92,59 @@ def find_hotels(driver, hotels_url, user_point, radius):
     return hotels
 
 
+def get_filters_url(user_request: UserRequest, url):
+    date_in = str(user_request.date_in.replace("-", "."))
+    date_out = str(user_request.date_out.replace("-", "."))
+    adults = str(user_request.adults)
+    childrens = ".".join(map(str, user_request.children_ages))
+    stars = ".".join(map(str, user_request.stars))
+
+    meal_types = ""
+    for meal_type in user_request.meal_types:
+        if meal_type == 'завтрак':
+            meal_types += "breakfast."
+        elif meal_type == 'завтрак+обед/ужин':
+            meal_types += "halfBoard."
+        elif meal_type == 'завтрак+обед+ужин':
+            meal_types += "fullBoard."
+        elif meal_type == 'всё включено':
+            meal_types += "allInclusive."
+        elif meal_type == 'без питания':
+            meal_types += "nomeal."
+    if meal_types.endswith('.'):
+        meal_types = meal_types[:-1]
+
+    price = user_request.price
+
+    amenities = ""
+    for service in user_request.services:
+        if service in services_mapping:
+            amenities += services_mapping[service] + "."
+    if amenities.endswith("."):
+        amenities = amenities[:-1]
+
+    return set_filters(url=url, date_in=date_in, date_out=date_out,
+                       adults=adults, childrens=childrens, stars=stars,
+                       meal_types=meal_types, price=price, amenities=amenities)
+
+
+def set_filters(url, date_in, date_out, adults, childrens, stars, meal_types, price, amenities):
+    url = url.replace("price=one", "price=" + price + ".one")
+    url = url.split('dates=')[0] + 'dates=' + date_in + "-" + date_out + '&' + '&'.join(
+        url.split('&')[1:])
+
+    if childrens == "":
+        url = url.split('guests=')[0] + 'guests=' + adults + '&' + '&'.join(
+            url.split('&')[1:])
+    else:
+        url = url.split('guests=')[0] + 'guests=' + adults + "and" + childrens + '&' + '&'.join(
+            url.split('&')[1:])
+
+    url += "&meal_types=" + meal_types + "&stars=" + stars + "&amenities=" + amenities
+
+    return url
+
+
 class OstrovokParser(Parser):
     @staticmethod
     def get_hotels(user_request: UserRequest):
@@ -105,36 +152,10 @@ class OstrovokParser(Parser):
         location = geolocator.reverse(user_request.user_point)
         country = location.raw['address'].get('country', '')
         city = location.raw['address'].get('city', '')
-        radius_km = user_request.radius_km
-        date_in = str(user_request.date_in)
-        date_out = str(user_request.date_out)
-        adults = str(user_request.adults)
-        childrens = ""  # указывается возраст ребёнка,
-        # если несколько детей, то возраста через точку
-
-        # 0.1 / 2 / 3 / 4 / 5
-        stars = ""  # количество звёзд через точку
-
-        # без питания=nomeal; завтрак=breakfast,
-        # завтрак+обед/ужин=halfBoard,
-        # завтрак+обед+ужин=fullBoard,
-        # всё включено=allInclusive
-        meal_types = "nomeal"  # вводится через точку
-
-        # минимальное 100 рублей, максимум 100.000
-        price = "100-10000"
-        # wifi=has_internet, парковка=has_parking, бассейн=has_pool,
-        # кондиционер=air-conditioning, с животными=has_pets,
-        # трансфер=has_airport_transfer, бар/ресторан=has_meal
-        amenities = "has_internet.air-conditioning"  # вводится через точку
 
         url, driver = get_city_url(country=country, city=city)
-        url_with_filters = set_filters(url, date_in, date_out, adults,
-                                       childrens, stars, meal_types, price, amenities)
+
+        url_with_filters = get_filters_url(user_request=user_request, url=url)
 
         return find_hotels(driver=driver, hotels_url=url_with_filters,
-                           user_point=user_request.user_point, radius=radius_km)
-
-
-if __name__ == '__main__':
-    OstrovokParser.get_hotels(UserRequest(user_id=0))
+                           user_point=user_request.user_point, radius=user_request.radius_km)

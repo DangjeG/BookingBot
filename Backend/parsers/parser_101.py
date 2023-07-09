@@ -1,4 +1,5 @@
 import requests
+from geopy import Nominatim
 from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium import webdriver
@@ -10,8 +11,19 @@ from selenium.webdriver.support.wait import WebDriverWait
 from Backend.ObjectModels.hotel import Hotel
 import re
 
+from Backend.ObjectModels.user_request import UserRequest
+from parser import Parser
 
 MAIN_PAGE = "https://101hotels.com"
+services_mapping = {
+    'wifi': '19',
+    'парковка': '14',
+    'бассейн': '10',
+    'бар/ресторан': '2',
+    'кондиционер': '5',
+    'с животными': '96',
+    'трансфер': '183'
+}
 
 
 def get_source_html(url):
@@ -72,7 +84,8 @@ def find_hotels(hotels_url, user_point, radius):
                                  find("div", class_="item-address-wrap js-on-map tooltip").
                                  get("data-hotel-coords"))[1:-1]).split(",")
 
-                distance = get_distance(hotel_coords=tuple([float(value) for value in float_values]), user_coords=user_point)
+                distance = get_distance(hotel_coords=tuple([float(value) for value in float_values]),
+                                        user_coords=user_point)
                 if distance <= radius:
                     name = item.find('span', itemprop='name').text
                     address = item.find('span', itemprop='streetAddress').text
@@ -93,49 +106,49 @@ def find_hotels(hotels_url, user_point, radius):
         return hotels
 
 
-def get_hotels():
-    country = "Россия"
-    city = "Челябинск"
-    user_point = (55.160797, 61.402509)  # проспект Ленина, 54, Челябинск
-    radius_km = 5
-    date_in = "03.08.2023"
-    date_out = "09.08.2023"
-    adults = "2"
-    children = ""  # указывается возраст ребёнка,
-    # если несколько детей то возраста через запятую
-    price = "0-Infinity"
-    # без звёзд-0
-    stars = "4"
-    # завтрак-1, полупансион-2, полныйпансион-3, всёвключено-4
-    meal_categories = "1"
-    # wifi-19, парковка-14, бассейн-10, бар/ресторан-2
-    # кондиционер-5, с животными-96, трансфер-183
-    services = "19,7,5"
+def get_filters_url(user_request: UserRequest):
+    date_in = str(user_request.date_in.replace("-", "."))
+    date_out = str(user_request.date_out.replace("-", "."))
+    adults = str(user_request.adults)
+    children = ",".join(map(str, user_request.children_ages))
+    price = user_request.price
+    stars = ",".join(map(str, user_request.stars))
+    meal_categories = ""
+    for meal_type in user_request.meal_types:
+        if meal_type == 'завтрак':
+            meal_categories += "1,"
+        elif meal_type == 'завтрак+обед/ужин':
+            meal_categories += "2,"
+        elif meal_type == 'завтрак+обед+ужин':
+            meal_categories += "3,"
+        elif meal_type == 'всё включено':
+            meal_categories += "4,"
+    if meal_categories.endswith(","):
+        meal_categories = meal_categories[:-1]
+    services = ""
+    for service in user_request.services:
+        if service in services_mapping:
+            services += services_mapping[service] + ","
+    if services.endswith(","):
+        services = services[:-1]
 
-    country_url = get_country_url(country=country, countries_html=get_source_html(url=MAIN_PAGE + "/countries"))
-    city_url = MAIN_PAGE + get_city_url(city=city, country_url=country_url)
-    url_with_filters = (city_url + "?in=" + date_in + "&out=" + date_out +
-                        "&adults=" + adults + "&children=" + children +
-                        "&price=" + price + "&services=" + services + "&stars=" + stars +
-                        "&meal_categories=" + meal_categories + "&viewType=list")
-    print(url_with_filters)
-    print()
-    return find_hotels(hotels_url=url_with_filters, user_point=user_point, radius=radius_km)
+    return ("?in=" + date_in + "&out=" + date_out +
+            "&adults=" + adults + "&children=" + children +
+            "&price=" + price + "&services=" + services + "&stars=" + stars +
+            "&meal_categories=" + meal_categories + "&viewType=list")
 
 
-if __name__ == "__main__":
-    hotels = get_hotels()
-    for hotel in hotels:
-        print(hotel)
+class Parser101Hotels(Parser):
+    @staticmethod
+    def get_hotels(user_request: UserRequest):
+        geolocator = Nominatim(user_agent="user_agent")
+        location = geolocator.reverse(user_request.user_point)
+        country = location.raw['address'].get('country', '')
+        city = location.raw['address'].get('city', '')
 
-# штука для нечёткого поиска города/страны
-# нужен список городов/стран
-# def get_current_city(user_city):
-#     city = re.findall('\w+', all_countries)
-#     score = list(map(lambda x: fuzz.QRatio(x.lower(), user_city), city))
-#     max_score = max(score)
-#     if max_score > 80:
-#         print('cool')
-#         return [c for (c, s) in zip(city, score) if s == max_score]
-#     else:
-#         print('fuck')
+        country_url = get_country_url(country=country, countries_html=get_source_html(url=MAIN_PAGE + "/countries"))
+        city_url = MAIN_PAGE + get_city_url(city=city, country_url=country_url)
+        url_with_filters = city_url + get_filters_url(user_request)
+
+        return find_hotels(hotels_url=url_with_filters, user_point=user_request.user_point,
+                           radius=user_request.radius_km)
