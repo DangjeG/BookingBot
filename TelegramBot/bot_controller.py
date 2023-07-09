@@ -22,17 +22,13 @@ dp = Dispatcher(bot)
 
 @dp.message_handler(commands=['start'])
 async def start_handler(message: types.Message):
-    if context_dict.get(message.from_user.id) is not None:
-        await message.answer('Закончите заполнять запрос')
-        return
-
-    in_proses[message.from_user.id] = (UserRequest(message.from_user.id))
-    context_dict[message.from_user.id] = "start"
+    context_dict[message.from_user.id] = "welcome"
     await message.answer('Здравствуйте, начнем работу', reply_markup=get_start_kb())
 
 
 @dp.callback_query_handler(text="start")
 async def add_filters_handler(callback: types.CallbackQuery):
+    in_proses[callback.from_user.id] = (UserRequest(callback.from_user.id))
     context_dict[callback.from_user.id] = "start"
     await callback.message.answer("Добавьте фильтры или начните поиск", reply_markup=get_start_kb())
 
@@ -178,6 +174,7 @@ async def data_message_handler(message: types.Message):
         pass
     else:
         await message.answer("Я вас не понимаю", reply_markup=start_searching_kb)
+
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
