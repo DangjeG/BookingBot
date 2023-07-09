@@ -11,7 +11,7 @@ from geopy.distance import great_circle as gd
 from geopy.geocoders import Nominatim
 from Backend.ObjectModels.hotel import Hotel
 from Backend.ObjectModels.user_request import UserRequest
-from parser import Parser
+from . import Parser
 
 MAIN_PAGE = "https://ostrovok.ru/"
 

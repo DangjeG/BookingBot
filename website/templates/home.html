@@ -19,43 +19,51 @@
         <div class="right">
             <div class="filters">
                 <br><h2>Фильтры</h2>
-                <form action="/hotels" method="post">
-                    <input type="text" id="country" placeholder="Страна"><br>
-                    <input type="text" id="city" placeholder="Город"><br>
-                    <input type="number" id="radius_km" placeholder="Радиус (в км)"><br>
-                    <input type="date" id="date_in" placeholder="Время въезда">Время въезда<br>
-                    <input type="date" id="date_out" placeholder="Время отъезда">Время отъезда<br>
-                    <input type="number" id="adults" placeholder="Количество взрослых"><br>
-                    <input type="number" id="childrens" placeholder="Возраст ребёнка"><br>
+                <form action="/hotels" method="POST">
+                    <input type="number" min="1" id="radius_km" name="radius_km" placeholder="Радиус (в км)" /><br>
+                    <input type="date" id="date_in" name="date_in" placeholder="Время въезда" />Время въезда<br>
+                    <input type="date" id="date_out" name="date_out" placeholder="Время отъезда" />Время отъезда<br>
+                    <input type="number" min="0" id="adults" name="adults" placeholder="Количество взрослых" /><br>
+                    <input type="number" min="0" id="childrens" name="childrens" placeholder="Возраст ребёнка" /><br>
                     
                     <div class="stars">
-                        <input type="checkbox" id="0">0<br>
-                        <input type="checkbox" id="1">1<br>
-                        <input type="checkbox" id="2">2<br>
-                        <input type="checkbox" id="3">3<br>
-                        <input type="checkbox" id="4">4<br>
-                        <input type="checkbox" id="5">5<br>
+                        <input type="checkbox" id="0" name="0" />0<br>
+                        <input type="checkbox" id="1" name="1" />1<br>
+                        <input type="checkbox" id="2" name="2" />2<br>
+                        <input type="checkbox" id="3" name="3" />3<br>
+                        <input type="checkbox" id="4" name="4" />4<br>
+                        <input type="checkbox" id="5" name="5" />5<br>
                     </div>
                     
-                    <input type="checkbox" id="nomeal">Без питания<br>
-                    <input type="checkbox" id="breakfast">Завтрак<br>
-                    <input type="checkbox" id="halfboard">Завтрак + обед/ужин<br>
-                    <input type="checkbox" id="fullboard">Завтрак + обед + ужин<br>
-                    <input type="checkbox" id="allinclusive">Всё включено<br>
+                    <div class="mealtype">
+                        <input type="checkbox" id="nomeal" name="nomeal" />Без питания<br>
+                        <input type="checkbox" id="breakfast" name="breakfast" />Завтрак<br>
+                        <input type="checkbox" id="halfboard" name="halfboard" />Завтрак + обед/ужин<br>
+                        <input type="checkbox" id="fullboard" name="fullboard" />Завтрак + обед + ужин<br>
+                        <input type="checkbox" id="allinclusive" name="allinclusive" />Всё включено<br>
+                    </div>         
 
                     <div class="price">
-                        <input type="text" id="min_price" placeholder="Минимальная цена">
-                        <input type="text" id="max_price" placeholder="Максимальная цена">
+                        <input type="text" min="100" max="99999" id="min_price" name="min_price" placeholder="Минимальная цена" />
+                        <input type="text" onchange="setMinValue()" max="100000" id="max_price" name="max_price" placeholder="Максимальная цена" />
+                        <script>
+                            function setMinValue() {
+                              var input1 = document.getElementById("min_price");
+                              var input2 = document.getElementById("max_price");
+
+                              input2.min = input1.value;
+                            }
+                          </script>
                     </div>
 
-                    <input type="checkbox" id="has_wifi">Есть Wi-Fi<br>
-                    <input type="checkbox" id="has_parking">Есть парковка<br>
-                    <input type="checkbox" id="has_pool">Есть бассейн<br>
-                    <input type="checkbox" id="air-conditioning">Есть кондиционер<br>
-                    <input type="checkbox" id="has_pets">Можно с животными<br>
-                    <input type="checkbox" id="has_airport_transfer">Есть трансфер<br>
-                    <input type="checkbox" id="has_meal">Есть ресторан<br>
-                    <input type="submit" value="Применить фильтры"><br>
+                    <input type="checkbox" id="has_wifi" name="has_wifi" />Есть Wi-Fi<br>
+                    <input type="checkbox" id="has_parking" name="has_parking" />Есть парковка<br>
+                    <input type="checkbox" id="has_pool" name="has_pool" />Есть бассейн<br>
+                    <input type="checkbox" id="air_conditioning" name="air_conditioning" />Есть кондиционер<br>
+                    <input type="checkbox" id="has_pets" name="has_pets" />Можно с животными<br>
+                    <input type="checkbox" id="has_airport_transfer" name="has_airport_transfer" />Есть трансфер<br>
+                    <input type="checkbox" id="has_meal" name="has_meal" />Есть ресторан<br>
+                    <input type="submit" value="Применить фильтры" /><br>
                 </form>
             </div>
         </div>
@@ -83,8 +91,17 @@
         basemaps.Topography.addTo(map);
         L.control.scale().addTo(map);
 
-        var searchControl = new L.esri.Controls.Geosearch().addTo(map);
+        var marker;
 
+        map.on('click', function(e) {
+            if (marker) {
+                map.removeLayer(marker);
+            }
+
+            marker = L.marker(e.latlng).addTo(map);
+        });
+
+        var searchControl = new L.esri.Controls.Geosearch().addTo(map);
         var results = new L.LayerGroup().addTo(map);
 
             searchControl.on('results', function(data){
