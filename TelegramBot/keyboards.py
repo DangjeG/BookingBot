@@ -30,10 +30,11 @@ def get_filter_kb(usr_req: UserRequest):
     filer_kb.add(
         types.InlineKeyboardButton(text='Количество звезд: ' + str(usr_req.stars), callback_data='stars_number'))
     filer_kb.add(types.InlineKeyboardButton(text='Цена: ' + usr_req.price, callback_data='price'))
-    filer_kb.add(types.InlineKeyboardButton(text='Питание: ' + usr_req.meal_type, callback_data='meal_type'))
+    filer_kb.add(types.InlineKeyboardButton(text='Питание: ' + usr_req.meal_types, callback_data='meal_type'))
     filer_kb.add(
         types.InlineKeyboardButton(text='Доп сервисы: ' + list_to_str(usr_req.services), callback_data='services'))
     filer_kb.add(types.InlineKeyboardButton(text='Назад', callback_data='start'))
+    print(usr_req)
     return filer_kb
 
 

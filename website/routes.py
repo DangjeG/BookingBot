@@ -4,10 +4,10 @@ from flask_login import LoginManager, UserMixin, login_required, login_user, log
 from . import app
 from .models import User
 
-
 login_manager = LoginManager()
 login_manager.login_view = 'tglogin'
 login_manager.init_app(app)
+
 
 @login_manager.user_loader
 def load_user(id):
@@ -23,11 +23,12 @@ def make_session_permanent():
 # @login_requireds
 def home():
     return render_template('home.html')
-    
+
 
 @app.route('/login')
 def login():
     return render_template('login.html')
+
 
 @app.route('/tglogin')
 def tglogin():
@@ -41,6 +42,7 @@ def tglogin():
 
     return redirect('/')
 
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -48,6 +50,7 @@ def logout():
     session.pop("name")
     session.pop("photo")
     return redirect('/login')
+
 
 @app.route('/about')
 def about():
@@ -58,3 +61,4 @@ def hotels():
     inputs = request.form.values()
     print(', '.join(inputs))
     return render_template('hotels.html')
+
