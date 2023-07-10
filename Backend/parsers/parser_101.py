@@ -146,6 +146,7 @@ class Parser101Hotels(Parser):
         country = location.raw['address'].get('country', '')
         if country != "Россия":
             return []
+        
         city = location.raw['address'].get('city', '')
 
         country_url = get_country_url(country=country, countries_html=get_source_html(url=MAIN_PAGE + "/countries"))

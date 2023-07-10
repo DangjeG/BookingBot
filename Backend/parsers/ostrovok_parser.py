@@ -153,6 +153,7 @@ class OstrovokParser(Parser):
         country = location.raw['address'].get('country', '')
         if country == "Россия":
             return []
+        
         city = location.raw['address'].get('city', '')
 
         url, driver = get_city_url(country=country, city=city)

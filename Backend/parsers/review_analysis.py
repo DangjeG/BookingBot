@@ -82,7 +82,7 @@ def analyze(hotel_url):
     cmap = ListedColormap(colors(np.linspace(0, 1, n_clusters)))
     plt.scatter(df['UMAP1'], df['UMAP2'], c=df['Cluster'], cmap=cmap)
     plt.colorbar()
-    plt.savefig("plot.png")
+    plt.savefig("Backend\parsers\plot.png")
     cluster_centers = kmeans.cluster_centers_
     nbrs = NearestNeighbors(n_neighbors=5, metric='euclidean').fit(vectors)
     distances, indices = nbrs.kneighbors(cluster_centers)
