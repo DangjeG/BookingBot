@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-
+from googletrans import Translator
 from Backend.ObjectModels.hotel import Hotel
 from Backend.ObjectModels.user_request import UserRequest
 
@@ -29,9 +29,7 @@ services_mapping = {
 
 
 def get_city_url(country, city):
-    options = Options()
-    options.add_argument('headless')
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome()
     driver.get(MAIN_PAGE)
     city_field = driver.find_element(By.CLASS_NAME, "Input-module__control--tqFEn")
     city_field.clear()
@@ -93,8 +91,8 @@ def find_hotels(driver, hotels_url, user_point, radius):
 
 
 def get_filters_url(user_request: UserRequest, url):
-    date_in = str(user_request.date_in.replace("-", "."))
-    date_out = str(user_request.date_out.replace("-", "."))
+    date_in = user_request.date_in.strftime("%Y-%m-%d").replace("-", ".")
+    date_out = user_request.date_out.strftime("%Y-%m-%d").replace("-", ".")
     adults = str(user_request.adults)
     childrens = ".".join(map(str, user_request.children_ages))
     stars = ".".join(map(str, user_request.stars))
@@ -153,8 +151,9 @@ class OstrovokParser(Parser):
         country = location.raw['address'].get('country', '')
         if country == "Россия":
             return []
-        
+
         city = location.raw['address'].get('city', '')
+        print(city + ", " + country)
 
         url, driver = get_city_url(country=country, city=city)
 

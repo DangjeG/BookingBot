@@ -1,4 +1,7 @@
 import datetime
+
+from geopy import Nominatim
+
 import map_renderer
 
 from Backend.parsers.parser_101 import Parser101Hotels
@@ -192,6 +195,21 @@ async def cal(callback: types.CallbackQuery):
         await callback.message.answer("Выберите фильтры", reply_markup=get_filter_kb(in_proses[callback.from_user.id]))
 
 
+@dp.message_handler(content_types=['location'])
+async def loc_handler(message):
+    print(message.location.longitude, message.location.latitude)
+    await message.reply("Начат поиск отелей")
+    if in_proses[message.from_user.id] is None:
+        await message.answer("Я вас не понимаю")
+        return
+    in_proses[message.from_user.id].user_point = (message.location.latitude, message.location.longitude)
+
+    hotels = exectr.get_hotels(usr_req=in_proses[message.from_user.id])
+
+    for hotel in hotels:
+        await message.answer(hotel)
+
+
 @dp.message_handler()
 async def data_message_handler(message: types.Message):
     context = context_dict[message.from_user.id]
@@ -237,7 +255,7 @@ async def data_message_handler(message: types.Message):
             in_proses[message.from_user.id].stars.append(num)
 
     elif context == "radius":
-        in_proses[message.from_user.id].radius_km(int(message.text))
+        in_proses[message.from_user.id].radius_km = int(message.text)
         await message.answer("Выберите фильтры", reply_markup=get_filter_kb(in_proses[message.from_user.id]))
 
     elif context == "services":
@@ -269,17 +287,6 @@ async def data_message_handler(message: types.Message):
 
     else:
         await message.answer("Я вас не понимаю")
-
-
-@dp.message_handler(content_types=['location'])
-async def handle_location(message: types.Message):
-    if in_proses[message.from_user.id] is None:
-        await message.answer("Я вас не понимаю")
-        return
-    in_proses[message.from_user.id].user_point = (message.location.latitude, message.location.longitude)
-    hotels = exectr.get_hotels(usr_req=in_proses[message.from_user.id])
-    #await message.answer(reply, reply_markup=types.ReplyKeyboardRemove())
-    print(hotels)
 
 
 if __name__ == '__main__':

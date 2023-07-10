@@ -28,6 +28,7 @@ class UserRequest:
                f"Цена: {self.price}, \n" \
                f"Доп сервисы: {list_to_str(self.services)})"
 
+
 def list_to_str(arr):
     st = ""
     for elem in arr:

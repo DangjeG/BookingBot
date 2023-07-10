@@ -107,8 +107,8 @@ def find_hotels(hotels_url, user_point, radius):
 
 
 def get_filters_url(user_request: UserRequest):
-    date_in = str(user_request.date_in.replace("-", "."))
-    date_out = str(user_request.date_out.replace("-", "."))
+    date_in = user_request.date_in.strftime("%Y-%m-%d").replace("-", ".")
+    date_out = user_request.date_out.strftime("%Y-%m-%d").replace("-", ".")
     adults = str(user_request.adults)
     children = ",".join(map(str, user_request.children_ages))
     price = user_request.price
@@ -153,5 +153,6 @@ class Parser101Hotels(Parser):
         city_url = MAIN_PAGE + get_city_url(city=city, country_url=country_url)
         url_with_filters = city_url + get_filters_url(user_request)
 
-        return find_hotels(hotels_url=url_with_filters, user_point=user_request.user_point,
-                           radius=user_request.radius_km)
+        hotels = find_hotels(hotels_url=url_with_filters, user_point=user_request.user_point, radius=user_request.radius_km)
+        return hotels
+

@@ -14,5 +14,5 @@ class ParserExecutor:
     def get_hotels(self, usr_req) -> list[Hotel]:
         hotels = []
         for element in self.parsers:
-            hotels.extend(element.get_hotels(usr_req=usr_req))
+            hotels.extend(element.get_hotels(user_request=usr_req))
         return hotels
