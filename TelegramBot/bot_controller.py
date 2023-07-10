@@ -1,11 +1,22 @@
 import datetime
 import map_renderer
 
-from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
+from Backend.parsers.parser_101 import Parser101Hotels
+from Backend.parsers.ostrovok_parser import OstrovokParser
+from telegram_bot_calendar import DetailedTelegramCalendar
+from Backend.DAOs.favorite_DAO import favorite_DAO
+from Backend.DAOs.hotel_DAO import hotel_DAO
+from Backend.DAOs.user_DAO import user_DAO
+from Backend.DAOs.user_request_DAO import user_request_DAO
 from aiogram import Bot, Dispatcher, executor, types
 from Backend.ObjectModels.user_request import UserRequest
+from Backend.ObjectModels.user import User
+from Backend.ObjectModels.hotel import Hotel
+from Backend.ObjectModels.favorite import favorite
+from Backend.parserexecutor import ParserExecutor
 from keyboards import get_start_kb, get_filter_kb, get_ans_list_kb, calendar, \
-    get_confirmation_children_kb, start_searching_kb
+    get_confirmation_children_kb, get_admin_kb, get_welcome_kb, get_account_opt_kb, \
+    get_back_kb
 
 meal_types = ["без питания", "завтрак", "завтрак+обед/ужин", "завтрак+обед+ужин", "всё включено"]
 services = ["wifi", "парковка", "бассейн", "кондиционер", "с животными", "трансфер", "бар/ресторан"]
@@ -14,6 +25,12 @@ stars = ["Без звезд", "1 звезда", "2 звезды", "3 звезд�
 in_proses = {}
 context_dict = {}
 
+usr_dao = user_DAO()
+fav_dao = favorite_DAO()
+htl_dao = hotel_DAO()
+req_dao = user_request_DAO()
+
+exectr = ParserExecutor([Parser101Hotels(), OstrovokParser])
 API_TOKEN = '5903687838:AAFciAPwabn0gSzfejp-YCkeaHOdeA9O2zI'
 
 bot = Bot(token=API_TOKEN)
@@ -22,15 +39,81 @@ dp = Dispatcher(bot)
 
 @dp.message_handler(commands=['start'])
 async def start_handler(message: types.Message):
+    if not usr_dao.exist(message.from_user.id):
+        usr_dao.add(User(message.from_user.id, message.from_user.username))
+
     context_dict[message.from_user.id] = "welcome"
-    await message.answer('Здравствуйте, начнем работу', reply_markup=get_start_kb())
+    await message.answer('Здравствуйте, начнем работу',
+                         reply_markup=get_welcome_kb(usr_dao.get_by_pk(message.from_user.id)))
+
+
+@dp.callback_query_handler(text="welcome")
+async def add_filters_handler(callback: types.CallbackQuery):
+    context_dict[callback.from_user.id] = "welcome"
+    await callback.message.answer('Начнем работу',
+                                  reply_markup=get_welcome_kb(usr_dao.get_by_pk(callback.from_user.id)))
+
+
+@dp.callback_query_handler(text="personal_account")
+async def add_filters_handler(callback: types.CallbackQuery):
+    usr = usr_dao.get_by_pk(callback.from_user.id)
+    await callback.message.answer(str(usr), reply_markup=get_account_opt_kb())
+
+
+@dp.callback_query_handler(text="favorites")
+async def add_filters_handler(callback: types.CallbackQuery):
+    msg = ''
+    for fav in fav_dao.get_user_favorite(callback.from_user.id):
+        msg = msg + str(htl_dao.get_by_pk(fav.hotel_name, fav.hotel_adderss)) + "\n\n"
+    if msg == '':
+        msg = "Нет избранных отелей"
+    await callback.message.answer(msg, reply_markup=get_back_kb('personal_account'))
+
+
+@dp.callback_query_handler(text="history")
+async def add_filters_handler(callback: types.CallbackQuery):
+    msg = ''
+    for his in req_dao.get_by_user_id(callback.from_user.id):
+        msg = msg + str(his) + "\n\n"
+    if msg == '':
+        msg = "Нет истории поиска"
+    await callback.message.answer(msg, reply_markup=get_back_kb('personal_account'))
+
+
+@dp.callback_query_handler(text="admin")
+async def date_check_in_handler(callback: types.CallbackQuery):
+    await callback.message.answer(f"здравствуйте {callback.from_user.username}", reply_markup=get_admin_kb())
+
+
+@dp.callback_query_handler(text="new_users")
+async def date_check_in_handler(callback: types.CallbackQuery):
+    context_dict[callback.from_user.id] = 'new_users'
+    await callback.message.answer(f"Введите промежуток в днях: ")
+
+
+@dp.callback_query_handler(text="numb_req")
+async def date_check_in_handler(callback: types.CallbackQuery):
+    context_dict[callback.from_user.id] = 'numb_req'
+    await callback.message.answer(f"Введите промежуток в днях: ")
+
+
+@dp.callback_query_handler(text="add_admin")
+async def date_check_in_handler(callback: types.CallbackQuery):
+    context_dict[callback.from_user.id] = 'add_admin'
+    await callback.message.answer(f"Введите username: ")
 
 
 @dp.callback_query_handler(text="start")
 async def add_filters_handler(callback: types.CallbackQuery):
     in_proses[callback.from_user.id] = (UserRequest(callback.from_user.id))
     context_dict[callback.from_user.id] = "start"
-    await callback.message.answer("Добавьте фильтры или начните поиск", reply_markup=get_start_kb())
+    await callback.message.answer("Добавьте фильтры или отправьте точку для начала поиска", reply_markup=get_start_kb())
+
+
+@dp.callback_query_handler(text="radius")
+async def add_filters_handler(callback: types.CallbackQuery):
+    context_dict[callback.from_user.id] = "radius"
+    await callback.message.answer("Выберите радиус: ")
 
 
 @dp.callback_query_handler(text="add_filters")
@@ -153,10 +236,9 @@ async def data_message_handler(message: types.Message):
         else:
             in_proses[message.from_user.id].stars.append(num)
 
-    elif context == "finish":
-        in_proses[message.from_user.id].radius_km = int(message.text)
-        await message.answer("Тут будут выводится отели", reply_markup=start_searching_kb)
-        pass
+    elif context == "radius":
+        in_proses[message.from_user.id].radius_km(int(message.text))
+        await message.answer("Выберите фильтры", reply_markup=get_filter_kb(in_proses[message.from_user.id]))
 
     elif context == "services":
         if in_proses[message.from_user.id].services.count(message.text) == 1:
@@ -168,12 +250,36 @@ async def data_message_handler(message: types.Message):
         else:
             in_proses[message.from_user.id].services.append(message.text)
 
-    elif context == "finish":
-        in_proses[message.from_user.id].radius_km = int(message.text)
-        await message.answer("Тут будут выводится отели", reply_markup=start_searching_kb)
-        pass
+    elif context == "new_users":
+        users = usr_dao.get_new(int(message.text))
+        msg = f"Всего {len(users)} новых пользователей:\n "
+        m = min(len(users) - 1, 10)
+        for i in range(0, m):
+            msg = msg + users[i] + "\n"
+        await message.answer(msg, get_back_kb('admin'))
+
+    elif context == "numb_req":
+        requests = req_dao.get_new(int(message.text))
+        msg = f"Всего было {len(requests)} запросов"
+        await message.answer(msg, get_back_kb('admin'))
+
+    elif context == "add_admin":
+        usr_dao.set_admin(message.text)
+        await message.answer(f"{message.text} добавлены права администратора", get_back_kb('admin'))
+
     else:
-        await message.answer("Я вас не понимаю", reply_markup=start_searching_kb)
+        await message.answer("Я вас не понимаю")
+
+
+@dp.message_handler(content_types=['location'])
+async def handle_location(message: types.Message):
+    if in_proses[message.from_user.id] is None:
+        await message.answer("Я вас не понимаю")
+        return
+    in_proses[message.from_user.id].user_point = (message.location.latitude, message.location.longitude)
+    hotels = exectr.get_hotels(usr_req=in_proses[message.from_user.id])
+    #await message.answer(reply, reply_markup=types.ReplyKeyboardRemove())
+    print(hotels)
 
 
 if __name__ == '__main__':

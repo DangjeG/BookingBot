@@ -14,7 +14,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from Backend.ObjectModels.hotel import Hotel
 from Backend.ObjectModels.user_request import UserRequest
 
-from parser import Parser
+from Backend.parsers.parser import Parser
 
 MAIN_PAGE = "https://ostrovok.ru/"
 services_mapping = {
@@ -147,7 +147,7 @@ def set_filters(url, date_in, date_out, adults, childrens, stars, meal_types, pr
 
 class OstrovokParser(Parser):
     @staticmethod
-    def get_hotels(user_request: UserRequest):
+    def get_hotels(user_request):
         geolocator = Nominatim(user_agent="user_agent")
         location = geolocator.reverse(user_request.user_point)
         country = location.raw['address'].get('country', '')

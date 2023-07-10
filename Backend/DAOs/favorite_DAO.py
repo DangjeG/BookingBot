@@ -1,4 +1,4 @@
-from database_executor import database_executor
+from Backend.DAOs.database_executor import database_executor
 from Backend.ObjectModels.favorite import favorite
 from Backend.parsers.parser import Parser
 
@@ -34,6 +34,7 @@ class favorite_DAO:
         fvs = []
         for temp in temps:
             fvs.append(self.convert(temp))
+        return fvs
 
     @staticmethod
     def convert(temp):

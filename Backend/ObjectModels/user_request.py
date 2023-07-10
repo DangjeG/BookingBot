@@ -2,7 +2,7 @@ import datetime
 
 
 class UserRequest:
-    def __init__(self, user_id, creation_date = datetime.date.today()):
+    def __init__(self, user_id, creation_date=datetime.date.today()):
         self.user_id = user_id
         self.user_point = (55.160797, 61.402509)
         self.radius_km = 5
@@ -17,14 +17,19 @@ class UserRequest:
         self.creation_date = creation_date
 
     def __str__(self):
-        return f"UserRequest(user_id={self.user_id}, " \
-               f"user_point={self.user_point}, " \
-               f"radius_km={self.radius_km}, " \
-               f"date_in={self.date_in}, " \
-               f"date_out={self.date_out}, " \
-               f"adults={self.adults}, " \
-               f"children_ages={self.children_ages}, " \
-               f"stars={self.stars}, " \
-               f"meal_types={self.meal_types}, " \
-               f"price={self.price}, " \
-               f"services={self.services})"
+        return f"Геопозиция: {self.user_point}, \n" \
+               f"Радиус поиска: {self.radius_km}, \n" \
+               f"Дата заезда: {self.date_in}, \n" \
+               f"Дата выезда: {self.date_out}, \n" \
+               f"Количество взрослых: {self.adults}, \n" \
+               f"Возраст детей: {list_to_str(self.children_ages)}, \n" \
+               f"Количество звезд: {list_to_str(self.stars)}, \n" \
+               f"Тип питания: {list_to_str(self.meal_types)}, \n" \
+               f"Цена: {self.price}, \n" \
+               f"Доп сервисы: {list_to_str(self.services)})"
+
+def list_to_str(arr):
+    st = ""
+    for elem in arr:
+        st = st + (str(elem) + ", ")
+    return st

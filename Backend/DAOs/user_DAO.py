@@ -1,6 +1,6 @@
 import datetime
 
-from database_executor import database_executor
+from Backend.DAOs.database_executor import database_executor
 from Backend.ObjectModels.user import User
 
 
@@ -18,6 +18,11 @@ class user_DAO:
     def get_by_pk(self, user_id):
         temp = self.executor.select_data(table_name=self.table_name,
                                          condition=f"user_id = \"{user_id}\"")[0]
+        return self.convert(temp)
+
+    def get_by_username(self, username):
+        temp = self.executor.select_data(table_name=self.table_name,
+                                         condition=f"username = \"{username}\"")[0]
         return self.convert(temp)
 
     def exist(self, user_id):

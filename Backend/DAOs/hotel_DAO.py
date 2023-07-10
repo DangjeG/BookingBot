@@ -1,4 +1,4 @@
-from database_executor import database_executor
+from Backend.DAOs.database_executor import database_executor
 from Backend.ObjectModels.hotel import Hotel
 
 

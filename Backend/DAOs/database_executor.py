@@ -7,7 +7,6 @@ class database_executor:
 
     def create_table(self, table_name, columns):
         query = f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})"
-        print(query)
         self.conn.execute(query)
         self.conn.commit()
 
